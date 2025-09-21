@@ -1,3 +1,8 @@
 {
-  "firebase_hosting": {}
+  "webPreview": {
+    "enabled": true,
+    "prototype": {
+      "enabled": true
+    }
+  }
 }
