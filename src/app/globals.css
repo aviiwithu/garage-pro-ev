@@ -1,0 +1,52 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 224 71% 4%; /* #010d1b */
+    --foreground: 210 40% 98%;
+    --card: 224 71% 6%; /* Slightly lighter than background */
+    --card-foreground: 210 40% 98%;
+    --popover: 224 71% 4%;
+    --popover-foreground: 210 40% 98%;
+    --primary: 179 92% 15%; /* #034948 */
+    --primary-foreground: 210 40% 98%;
+    --secondary: 215 28% 17%;
+    --secondary-foreground: 210 40% 98%;
+    --muted: 215 28% 17%;
+    --muted-foreground: 215 21% 51%;
+    --accent: 39 100% 50%; /* #FFA500 */
+    --accent-foreground: 224 71% 4%;
+    --destructive: 0 63% 31%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 215 28% 17%;
+    --input: 215 28% 17%;
+    --ring: 179 92% 15%;
+    --chart-1: 179 70% 40%;
+    --chart-2: 39 80% 50%;
+    --chart-3: 200 90% 55%;
+    --chart-4: 260 70% 60%;
+    --chart-5: 210 0% 50%;
+    --radius: 0.5rem;
+    --sidebar-background: 224 71% 5%; /* Slightly different dark shade */
+    --sidebar-foreground: 210 40% 98%;
+    --sidebar-primary: 179 92% 15%;
+    --sidebar-primary-foreground: 0 0% 98%;
+    --sidebar-accent: 215 28% 20%;
+    --sidebar-accent-foreground: 210 40% 98%;
+    --sidebar-border: 215 28% 12%;
+    --sidebar-ring: 39 100% 50%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+}

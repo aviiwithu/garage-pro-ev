@@ -1,0 +1,128 @@
+
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Helper Functions
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function getUserRole(uid) {
+      return get(/databases/$(database)/documents/users/$(uid)).data.role;
+    }
+
+    function isOwner(uid) {
+      return request.auth.uid == uid;
+    }
+
+    function isAdmin() {
+      // The admin user is a special case and does not have a user document.
+      // We identify them by their specific email claim in the auth token.
+      return request.auth.token.email == 'admin@garagepro.com';
+    }
+
+    function isTechnician() {
+      return isSignedIn() && getUserRole(request.auth.uid) == 'technician';
+    }
+    
+    function isCustomer() {
+      return isSignedIn() && getUserRole(request.auth.uid) == 'customer';
+    }
+    
+    // USERS collection
+    match /users/{userId} {
+      allow read: if isAdmin() || isOwner(userId) || isTechnician();
+      allow create: if isAdmin(); // Only admins can create new users/employees directly
+      allow update: if isAdmin() || isOwner(userId);
+      allow delete: if isAdmin();
+    }
+
+    // COMPLAINTS collection
+    match /complaints/{complaintId} {
+      allow create: if isCustomer() || isAdmin();
+      allow read: if isAdmin() || isTechnician() || (isCustomer() && resource.data.customerId == request.auth.uid);
+      allow update: if isAdmin() || isTechnician();
+      allow delete: if isAdmin();
+    }
+
+    // INVOICES collection
+    match /invoices/{invoiceId} {
+      allow create: if isAdmin(); // Invoices are created by system/admin
+      allow read: if isAdmin() || isTechnician() || (isCustomer() && resource.data.customerId == request.auth.uid);
+      allow update, delete: if isAdmin();
+    }
+    
+    // TRANSACTIONS collection
+    match /transactions/{transactionId} {
+      allow read, create, update, delete: if isAdmin();
+    }
+    
+    // EXPENSES collection
+    match /expenses/{expenseId} {
+       allow read, create, update, delete: if isAdmin();
+    }
+
+    // INVENTORY PARTS collection
+    match /inventoryParts/{partId} {
+      allow read: if isAdmin() || isTechnician();
+      allow create, update, delete: if isAdmin();
+    }
+    
+    // INVENTORY SERVICES collection
+    match /inventoryServices/{serviceId} {
+       allow read: if isAdmin() || isTechnician();
+       allow create, update, delete: if isAdmin();
+    }
+
+    // AMCS collection
+    match /amcs/{amcId} {
+      allow read: if isAdmin() || (isCustomer() && resource.data.customerId == request.auth.uid);
+      allow create, update, delete: if isAdmin();
+    }
+    
+    // ATTENDANCE collection
+    match /attendance/{attendanceId} {
+      allow read: if isAdmin() || (isTechnician() && resource.data.technicianId == request.auth.uid);
+      allow create: if isTechnician() && request.resource.data.technicianId == request.auth.uid;
+      allow update: if isTechnician() && resource.data.technicianId == request.auth.uid; // for clock-out
+      allow delete: if isAdmin();
+    }
+    
+    // SALES ORDERS collection
+    match /salesOrders/{orderId} {
+      allow read, create, update, delete: if isAdmin();
+    }
+    
+    // QUOTES collection
+    match /quotes/{quoteId} {
+       allow read, create, update, delete: if isAdmin();
+    }
+    
+    // VENDORS collection
+    match /vendors/{vendorId} {
+       allow read, create, update, delete: if isAdmin();
+    }
+
+    // VENDOR PERFORMANCE collection
+    match /vendorPerformance/{perfId} {
+        allow read, create, update, delete: if isAdmin();
+    }
+
+    // VENDOR CONTRACTS collection
+    match /vendorContracts/{contractId} {
+        allow read, create, update, delete: if isAdmin();
+    }
+
+    // ALERTS collection
+    match /alerts/{alertId} {
+      allow read, write: if isAdmin();
+    }
+
+    // DOCUMENTS collection
+    match /documents/{docId} {
+      allow read, write: if isAdmin();
+    }
+  }
+}

@@ -1,0 +1,16 @@
+rules_version = '2';
+
+service firebase.storage {
+  match /b/{bucket}/o {
+    // Allow uploads to the 'complaints' folder only for authenticated users.
+    // This allows users to upload images or documents related to their service tickets.
+    match /complaints/{complaintId}/{allPaths=**} {
+      allow read, write: if request.auth != null;
+    }
+
+    // By default, deny all other reads and writes.
+    match /{allPaths=**} {
+      allow read, write: if false;
+    }
+  }
+}

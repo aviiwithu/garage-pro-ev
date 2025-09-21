@@ -1,0 +1,247 @@
+
+:root {
+    --primary-reset: #4285f4;
+    --secondary-reset: #34a853;
+    --accent-reset: #ea4335;
+    --warning-reset: #fbbc05;
+    --light-reset: #f8f9fa;
+    --dark-reset: #202124;
+    --gray-reset: #5f6368;
+}
+.container-reset * {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+.container-reset {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    line-height: 1.6;
+    color: var(--dark-reset);
+    padding: 20px;
+    min-height: 100vh;
+    max-width: 1200px;
+    margin: 0 auto;
+    background: white;
+    border-radius: 10px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+}
+.container-reset header {
+    background: var(--primary-reset);
+    color: white;
+    padding: 2rem;
+    text-align: center;
+}
+.container-reset h1 {
+    margin-bottom: 0.5rem;
+    font-size: 2.5rem;
+}
+.container-reset .subtitle {
+    font-weight: 300;
+    font-size: 1.2rem;
+    opacity: 0.9;
+}
+.container-reset .content {
+    padding: 2rem;
+}
+.container-reset .section {
+    background: var(--light-reset);
+    padding: 1.5rem;
+    border-radius: 8px;
+    margin-bottom: 2rem;
+}
+.container-reset .diagnostic {
+    border-left: 4px solid var(--accent-reset);
+}
+.container-reset .solution {
+    border-left: 4px solid var(--secondary-reset);
+}
+.container-reset .warning {
+    border-left: 4px solid var(--warning-reset);
+}
+.container-reset h2 {
+    color: var(--primary-reset);
+    margin-bottom: 1rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid #e0e0e0;
+}
+.container-reset .diagnostic h2 {
+    color: var(--accent-reset);
+}
+.container-reset .solution h2 {
+    color: var(--secondary-reset);
+}
+.container-reset .warning h2 {
+    color: var(--warning-reset);
+}
+.container-reset h3 {
+    margin: 1.5rem 0 0.5rem 0;
+    color: var(--gray-reset);
+}
+.container-reset ul {
+    padding-left: 1.5rem;
+    margin-bottom: 1rem;
+}
+.container-reset li {
+    margin-bottom: 0.5rem;
+    padding-left: 0.5rem;
+}
+.container-reset code {
+    background: #272822;
+    color: #f8f8f2;
+    padding: 0.2rem 0.4rem;
+    border-radius: 3px;
+    font-family: 'Fira Code', monospace;
+    font-size: 0.9rem;
+}
+.container-reset pre {
+    background: #272822;
+    color: #f8f8f2;
+    padding: 1rem;
+    border-radius: 5px;
+    overflow-x: auto;
+    margin: 1rem 0;
+    font-family: 'Fira Code', monospace;
+    line-height: 1.5;
+    position: relative;
+}
+.container-reset .copy-button {
+    position: absolute;
+    top: 5px;
+    right: 5px;
+    background: rgba(255, 255, 255, 0.2);
+    color: white;
+    border: none;
+    border-radius: 3px;
+    padding: 3px 8px;
+    cursor: pointer;
+    font-size: 0.8rem;
+}
+.container-reset .step {
+    background: white;
+    padding: 1rem;
+    border-radius: 5px;
+    margin-bottom: 1rem;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+}
+.container-reset .step-number {
+    display: inline-block;
+    background: var(--primary-reset);
+    color: white;
+    width: 25px;
+    height: 25px;
+    text-align: center;
+    line-height: 25px;
+    border-radius: 50%;
+    margin-right: 10px;
+    font-weight: bold;
+}
+.container-reset .button {
+    display: inline-block;
+    background: var(--primary-reset);
+    color: white;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    text-decoration: none;
+    font-weight: bold;
+    margin: 10px 5px;
+    transition: background 0.3s;
+}
+.container-reset .button:hover {
+    background: #3367d6;
+}
+.container-reset .button-success {
+    background: var(--secondary-reset);
+}
+.container-reset .button-success:hover {
+    background: #2d8d47;
+}
+.container-reset .button-warning {
+    background: var(--warning-reset);
+    color: var(--dark-reset);
+}
+.container-reset .button-warning:hover {
+    background: #e6a700;
+}
+.container-reset footer {
+    text-align: center;
+    padding: 2rem;
+    color: var(--gray-reset);
+    font-size: 0.9rem;
+    border-top: 1px solid #e0e0e0;
+    margin-top: 2rem;
+}
+.container-reset .note {
+    background: #fff8e1;
+    padding: 1rem;
+    border-radius: 5px;
+    border-left: 4px solid #ffc107;
+    margin: 1rem 0;
+}
+.container-reset .critical {
+    background: #ffebee;
+    padding: 1rem;
+    border-radius: 5px;
+    border-left: 4px solid var(--accent-reset);
+    margin: 1rem 0;
+}
+.container-reset .terminal {
+    background: #272822;
+    color: #f8f8f2;
+    padding: 1rem;
+    border-radius: 5px;
+    margin: 1rem 0;
+    font-family: 'Fira Code', monospace;
+}
+.container-reset .command {
+    color: #a6e22e;
+}
+.container-reset .output {
+    color: #f8f8f2;
+}
+.container-reset .checklist {
+    margin: 1rem 0;
+}
+.container-reset .checklist-item {
+    display: flex;
+    align-items: center;
+    margin-bottom: 0.5rem;
+}
+.container-reset .checklist-item input {
+    margin-right: 10px;
+}
+.container-reset .tab {
+    overflow: hidden;
+    border: 1px solid #ccc;
+    background-color: #f1f1f1;
+    border-radius: 5px 5px 0 0;
+}
+.container-reset .tab button {
+    background-color: inherit;
+    float: left;
+    border: none;
+    outline: none;
+    cursor: pointer;
+    padding: 10px 16px;
+    transition: 0.3s;
+}
+.container-reset .tab button:hover {
+    background-color: #ddd;
+}
+.container-reset .tab button.active {
+    background-color: #ccc;
+}
+.container-reset .tabcontent {
+    display: none;
+    padding: 1rem;
+    border: 1px solid #ccc;
+    border-top: none;
+    border-radius: 0 0 5px 5px;
+    animation: fadeEffect 1s;
+}
+@keyframes fadeEffect {
+    from {opacity: 0;}
+    to {opacity: 1;}
+}
