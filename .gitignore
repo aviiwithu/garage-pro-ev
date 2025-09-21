@@ -1,3 +1,4 @@
-.idx/integrations.json
-.vscode/
-node_modules
+.env
+.env.local
+.next/
+node_modules/
