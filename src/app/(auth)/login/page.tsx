@@ -131,7 +131,7 @@ export default function LoginPage() {
 
             {/* <ReCAPTCHA
                 ref={recaptchaRef}
-                sitekey={"AIzaSyDT78w7kyu_ZuxJJYcjxCoi6mPJroVTd6I"}
+                sitekey={process.env.RECAPTCHA_SITE_KEY}
                 onChange={(token) => setToken(token || "")}
             /> */}
 
