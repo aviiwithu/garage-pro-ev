@@ -301,7 +301,9 @@ export function NewQuoteForm({ onSubmit }: NewQuoteFormProps) {
                                     </TableCell>
                                     <TableCell>
                                         <FormField control={form.control} name={`items.${index}.rate`} render={({ field }) => (
-                                            <FormItem><FormControl><Input type="number" {...field} /></FormControl><FormMessage /></FormMessage /></FormItem>
+                                            <FormItem><FormControl><Input type="number" {...field} /></FormControl>
+                                            <FormMessage/>
+                                            </FormItem>
                                         )} />
                                     </TableCell>
                                     <TableCell>

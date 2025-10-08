@@ -7,13 +7,14 @@ import { getStorage, FirebaseStorage } from "firebase/storage";
 
 // This configuration is now dynamically set to your specific Firebase project.
 export const firebaseConfig = {
-  "projectId": "garagepro-ev1-13913808-ab2e6",
-  "appId": "1:182809514840:web:9c500a175a9ed1d4210b2d",
-  "storageBucket": "garagepro-ev1-13913808-ab2e6.appspot.com",
-  "apiKey": "AIzaSyAJhpoxyRHA5yvXUcEXwYUBL3Mdl8bgxbA",
-  "authDomain": "garagepro-ev1-13913808-ab2e6.firebaseapp.com",
-  "measurementId": "",
-  "messagingSenderId": "182809514840"
+  apiKey: "AIzaSyD-jwbgrwFY90mEerPv_iygHe463WDr7xE",
+  authDomain: "garage-pro-ev.firebaseapp.com",
+  databaseURL: "https://garage-pro-ev-default-rtdb.firebaseio.com",
+  projectId: "garage-pro-ev",
+  storageBucket: "garage-pro-ev.firebasestorage.app",
+  messagingSenderId: "739086227133",
+  appId: "1:739086227133:web:aebba5fd3a9ae3e16349d4",
+  measurementId: "G-FBB71DWK60"
 };
 
 // Singleton pattern to initialize and export Firebase services.

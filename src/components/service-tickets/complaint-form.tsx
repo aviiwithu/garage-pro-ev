@@ -9,13 +9,10 @@ import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, For
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { CalendarIcon, MapPin, Loader2, UploadCloud } from 'lucide-react';
-import { Calendar } from '@/components/ui/calendar';
-import { cn } from '@/lib/utils';
-import { format } from 'date-fns';
+import { Loader2 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
+import { LocationPicker } from './location-picker';
 
 const formSchema = z.object({
   // Branch Info
@@ -29,17 +26,16 @@ const formSchema = z.object({
   // Customer Details
   customerType: z.string().min(1, "Customer type is required."),
   customerName: z.string().min(2, "Name is required."),
-  contactNumber: z.string().min(10, "A valid contact number is required."),
+  contactNumber: z.string().regex(/^[6-9]\\d{9}$/, "A valid 10-digit Indian contact number is required."),
   email: z.string().email("A valid email is required."),
   
   // Complaint Specifics
-  issue: z.string().min(5, "Issue title is too short."), // Changed from issueTitle
+  issue: z.string().min(5, "Issue title is too short."),
   issueType: z.string().min(1, "Issue type is required."),
   resolutionType: z.string().min(1, "Resolution type is required."),
   priority: z.string().min(1, "Priority level is required."),
-  detailedIssue: z.string().min(10, "Please describe the issue in more detail."), // Renamed for clarity in form, maps to `issue` in context
+  detailedIssue: z.string().min(10, "Please describe the issue in more detail."),
   incidentLocation: z.string().optional(),
-  incidentDate: z.date().optional(),
 });
 
 type ComplaintFormValues = z.infer<typeof formSchema>;
@@ -52,8 +48,6 @@ const LOCAL_STORAGE_KEY = 'complaintForm';
 
 export function ComplaintForm({ onSubmit }: ComplaintFormProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isFetchingLocation, setIsFetchingLocation] = useState(false);
-  const [locationError, setLocationError] = useState('');
   const [attachments, setAttachments] = useState<FileList | null>(null);
 
   const form = useForm<ComplaintFormValues>({
@@ -73,7 +67,6 @@ export function ComplaintForm({ onSubmit }: ComplaintFormProps) {
       priority: 'Medium',
       detailedIssue: '',
       incidentLocation: '',
-      incidentDate: undefined,
     },
   });
 
@@ -82,9 +75,6 @@ export function ComplaintForm({ onSubmit }: ComplaintFormProps) {
     if (savedData) {
       try {
         const parsedData = JSON.parse(savedData);
-        if (parsedData.incidentDate) {
-          parsedData.incidentDate = new Date(parsedData.incidentDate);
-        }
         form.reset(parsedData);
       } catch (e) {
         console.error("Failed to parse complaint form data from localStorage", e);
@@ -101,35 +91,11 @@ export function ComplaintForm({ onSubmit }: ComplaintFormProps) {
   
   async function handleFormSubmit(values: ComplaintFormValues) {
     setIsSubmitting(true);
-    // The parent component's `onSubmit` handles the actual submission logic
-    await onSubmit(values, attachments); 
+    await onSubmit(values, attachments);
     localStorage.removeItem(LOCAL_STORAGE_KEY);
     form.reset();
     setIsSubmitting(false);
   }
-
-
-  const handleFetchLocation = () => {
-    if (!navigator.geolocation) {
-        setLocationError("Geolocation is not supported by your browser.");
-        return;
-    }
-
-    setIsFetchingLocation(true);
-    setLocationError('');
-
-    navigator.geolocation.getCurrentPosition(
-        (position) => {
-            const { latitude, longitude } = position.coords;
-            form.setValue('incidentLocation', `Lat: ${latitude.toFixed(5)}, Lon: ${longitude.toFixed(5)}`);
-            setIsFetchingLocation(false);
-        },
-        (error) => {
-            setLocationError(`Error fetching location: ${error.message}`);
-            setIsFetchingLocation(false);
-        }
-    );
-  };
 
   return (
     <Form {...form}>
@@ -233,9 +199,40 @@ export function ComplaintForm({ onSubmit }: ComplaintFormProps) {
                 <FormField control={form.control} name="customerName" render={({ field }) => (
                     <FormItem><FormLabel>Full Name</FormLabel><FormControl><Input placeholder="John Doe" {...field} /></FormControl><FormMessage /></FormItem>
                 )} />
-                <FormField control={form.control} name="contactNumber" render={({ field }) => (
-                    <FormItem><FormLabel>Contact Number</FormLabel><FormControl><Input placeholder="+1 123 456 7890" {...field} /></FormControl><FormMessage /></FormItem>
-                )} />
+                <FormField
+                  control={form.control}
+                  name="contactNumber"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Contact Number</FormLabel>
+                      <FormControl>
+                        <div className="flex items-center">
+                          <div className="relative">
+                            <Input
+                              type="text"
+                              placeholder="98765 43210"
+                              className="pl-16"
+                              maxLength={10}
+                              {...field}
+                              onChange={(e) => {
+                                const value = e.target.value.replace(/[^0-9]/g, '');
+                                field.onChange(value);
+                              }}
+                            />
+                            <div className="absolute inset-y-0 left-0 flex items-center pl-3">
+                              <span
+                                className="text-gray-500 sm:text-sm"
+                              >
+                                🇮🇳 +91
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
                 <FormField control={form.control} name="email" render={({ field }) => (
                     <FormItem><FormLabel>Email Address</FormLabel><FormControl><Input type="email" placeholder="john.doe@example.com" {...field} /></FormControl><FormMessage /></FormItem>
                 )} />
@@ -308,69 +305,23 @@ export function ComplaintForm({ onSubmit }: ComplaintFormProps) {
                 <FormField control={form.control} name="detailedIssue" render={({ field }) => (
                     <FormItem><FormLabel>Detailed Issue Description</FormLabel><FormControl><Textarea placeholder="Describe the issue in detail..." {...field} rows={5} /></FormControl><FormMessage /></FormItem>
                 )} />
-                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <FormField control={form.control} name="incidentLocation" render={({ field }) => (
+                 <div className="grid grid-cols-1">
+                    <FormField
+                      control={form.control}
+                      name="incidentLocation"
+                      render={({ field }) => (
                         <FormItem>
-                            <FormLabel>Incident Location (Optional)</FormLabel>
-                            <div className="flex items-center gap-2">
-                                <FormControl>
-                                    <Input placeholder="e.g., Main Street or GPS coordinates" {...field} />
-                                </FormControl>
-                                <Button 
-                                    type="button" 
-                                    variant="outline" 
-                                    size="icon" 
-                                    onClick={handleFetchLocation}
-                                    disabled={isFetchingLocation}
-                                >
-                                    {isFetchingLocation ? <Loader2 className="h-4 w-4 animate-spin" /> : <MapPin className="h-4 w-4" />}
-                                </Button>
-                            </div>
-                            {locationError && <p className="text-sm text-destructive">{locationError}</p>}
-                            <FormMessage />
+                          <FormLabel>Incident Location</FormLabel>
+                          <FormControl>
+                            <LocationPicker 
+                              value={field.value || ''}
+                              onChange={field.onChange}
+                            />
+                          </FormControl>
+                          <FormMessage />
                         </FormItem>
-                    )} />
-                     <FormField
-                        control={form.control}
-                        name="incidentDate"
-                        render={({ field }) => (
-                            <FormItem className="flex flex-col">
-                            <FormLabel>Date of Incident (Optional)</FormLabel>
-                            <Popover>
-                                <PopoverTrigger asChild>
-                                <FormControl>
-                                    <Button
-                                    variant={"outline"}
-                                    className={cn(
-                                        "w-full pl-3 text-left font-normal",
-                                        !field.value && "text-muted-foreground"
-                                    )}
-                                    >
-                                    {field.value ? (
-                                        format(field.value, "PPP")
-                                    ) : (
-                                        <span>Pick a date</span>
-                                    )}
-                                    <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                                    </Button>
-                                </FormControl>
-                                </PopoverTrigger>
-                                <PopoverContent className="w-auto p-0" align="start">
-                                <Calendar
-                                    mode="single"
-                                    selected={field.value}
-                                    onSelect={field.onChange}
-                                    disabled={(date) =>
-                                    date > new Date() || date < new Date("1900-01-01")
-                                    }
-                                    initialFocus
-                                />
-                                </PopoverContent>
-                            </Popover>
-                            <FormMessage />
-                            </FormItem>
-                        )}
-                        />
+                      )}
+                    />
                  </div>
                  <FormItem>
                     <FormLabel>Attach Documents or Images</FormLabel>

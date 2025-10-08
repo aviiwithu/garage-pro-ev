@@ -1,8 +1,4 @@
 {
-  "webPreview": {
-    "enabled": true,
-    "prototype": {
-      "enabled": true
-    }
-  }
+  "firebase_hosting": {},
+  "cloud_run_deploy": {}
 }

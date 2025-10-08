@@ -10,9 +10,15 @@ import {
     onAuthStateChanged, 
     User as FirebaseAuthUser, 
     signInWithEmailAndPassword,
-    signOut
+    signOut,
+    GoogleAuthProvider,
+    signInWithRedirect,
+    RecaptchaVerifier,
+    getAuth,
+    signInWithPopup
 } from 'firebase/auth';
-import { doc, getDoc } from 'firebase/firestore';
+import { doc, getDoc, setDoc } from 'firebase/firestore';
+import { verifyRecaptcha } from '@/app/actions/auth';
 
 export type User = (Customer | Technician) & { role: UserRole; firebaseUid?: string };
 export type UserRole = 'admin' | 'customer' | 'technician' | null;
@@ -23,7 +29,8 @@ interface AuthContextType {
   role: UserRole | null;
   viewAsRole: UserRole | null;
   setViewAsRole: (role: UserRole | null) => void;
-  login: (email: string, pass: string) => Promise<void>;
+  login: (email: string, pass: string, token: string) => Promise<void>;
+  signInWithGoogle: (token: string) => Promise<void>;
   logout: () => Promise<void>;
   loading: boolean;
 }
@@ -68,8 +75,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
       setLoading(true);
+    console.log(firebaseUser);
       if (firebaseUser) {
-        // Corrected Logic: Check for admin user FIRST.
         if (firebaseUser.email === 'admin@garagepro.com') {
              setUser({
                 id: 'admin-user',
@@ -88,7 +95,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
             return;
         }
 
-        // Check for mock users for testing
         if (firebaseUser.email && MOCK_USERS[firebaseUser.email as keyof typeof MOCK_USERS]) {
             setUser({
                 ...MOCK_USERS[firebaseUser.email as keyof typeof MOCK_USERS],
@@ -98,7 +104,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
             return;
         }
         
-        // Proceed with Firestore check for regular users
         const userDocRef = doc(db, "users", firebaseUser.uid);
         const userDoc = await getDoc(userDocRef);
 
@@ -106,14 +111,39 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
             const userData = userDoc.data() as User;
             setUser({ ...userData, id: userDoc.id, firebaseUid: firebaseUser.uid });
         } else {
-             // Fallback for customer portal users who might not have a UID-based doc yet
-            const customerDocRef = doc(db, "users", firebaseUser.email!.replace(/[^a-zA-Z0-9]/g, ''));
-            const customerDoc = await getDoc(customerDocRef);
-            if (customerDoc.exists()) {
-                const customerData = customerDoc.data() as User;
-                 setUser({ ...customerData, id: customerDoc.id, firebaseUid: firebaseUser.uid });
+            const isGoogleSignIn = firebaseUser.providerData.some(
+                (provider) => provider.providerId === 'google.com'
+            );
+
+            if (isGoogleSignIn) {
+                const newUser: User = {
+                    id: firebaseUser.uid,
+                    firebaseUid: firebaseUser.uid,
+                    name: firebaseUser.displayName || 'New Google User',
+                    displayName: firebaseUser.displayName || 'Google User',
+                    email: firebaseUser.email!,
+                    role: 'customer',
+                    type: 'B2C',
+                    mobile: firebaseUser.phoneNumber || '',
+                    address: '',
+                    vehicles: [],
+                    portalStatus: 'Enabled'
+                };
+                await setDoc(userDocRef, newUser);
+                setUser(newUser);
+            } else if (firebaseUser.email) {
+                const customerDocRef = doc(db, "users", firebaseUser.email.replace(/[^a-zA-Z0-9]/g, ''));
+                const customerDoc = await getDoc(customerDocRef);
+                if (customerDoc.exists()) {
+                    const customerData = customerDoc.data() as User;
+                     setUser({ ...customerData, id: customerDoc.id, firebaseUid: firebaseUser.uid });
+                } else {
+                    console.error("No user profile found in Firestore for UID:", firebaseUser.uid);
+                    await signOut(auth);
+                    setUser(null);
+                }
             } else {
-                console.error("No user profile found in Firestore for UID:", firebaseUser.uid);
+                console.error("User authenticated without email, and no profile exists for UID:", firebaseUser.uid);
                 await signOut(auth);
                 setUser(null);
             }
@@ -127,14 +157,14 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     return () => unsubscribe();
   }, []);
 
-  const login = async (email: string, pass: string) => {
-    // Development override for admin user
+
+
+  const login = async (email: string, pass: string, token: string) => {
+
     if (email === 'admin@garagepro.com' && pass === 'password123') {
         try {
             await signInWithEmailAndPassword(auth, email, pass);
         } catch (error: any) {
-            // If the admin user does not exist, this will fail. We can ignore it
-            // because we will set the user manually for the demo.
             console.log("Admin user not found in Firebase Auth, proceeding with mock login.");
             setUser({
                 id: 'admin-user',
@@ -155,6 +185,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     await signInWithEmailAndPassword(auth, email, pass);
   };
 
+  const signInWithGoogle = async (token: string) => {
+
+    const provider = new GoogleAuthProvider();
+    await signInWithPopup(auth, provider);
+  };
+
   const logout = async () => {
     await signOut(auth);
     setUser(null);
@@ -170,6 +206,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         viewAsRole,
         setViewAsRole,
         login, 
+        signInWithGoogle,
         logout, 
         loading,
     }}>
