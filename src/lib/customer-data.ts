@@ -1,9 +1,9 @@
-
-
 export type Customer = {
   id: string;
-  name: string; // Company Name or Full Name
-  displayName: string; // Primary Contact Name
+  firstName?: string;
+  lastName?: string;
+  companyName?: string;
+  displayName: string; 
   type: 'B2B' | 'B2C';
   email: string;
   workPhone?: string;
@@ -11,8 +11,9 @@ export type Customer = {
   address: string;
   gstNumber?: string;
   pan?: string;
-  vehicles: string[]; // Array of vehicle registration numbers
+  vehicles: string[];
   role: 'customer' | 'admin' | 'technician';
   portalStatus: 'Enabled' | 'Disabled';
   remarks?: string;
+  salutation?: string;
 };

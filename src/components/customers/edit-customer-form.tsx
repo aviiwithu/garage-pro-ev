@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useForm } from 'react-hook-form';
@@ -10,12 +9,10 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
 import { Textarea } from '../ui/textarea';
-import { setDoc, doc } from 'firebase/firestore';
+import { doc, updateDoc } from 'firebase/firestore';
 import { Switch } from '../ui/switch';
 import { Separator } from '../ui/separator';
-import { auth, db } from '@/lib/firebase';
-import { useEffect } from 'react';
-import { createUserWithEmailAndPassword } from 'firebase/auth';
+import { db } from '@/lib/firebase';
 import { ChipInput } from '../ui/chip-input';
 
 const formSchema = z.object({
@@ -29,7 +26,6 @@ const formSchema = z.object({
   email: z.string().email({ message: 'Invalid email address.' }),
   workPhone: z.string().optional(),
   mobile: z.string().regex(/^[6-9]\d{9}$/, "A valid 10-digit Indian contact number is required."),
-  password: z.string().min(8, { message: "Password must be at least 8 characters." }),
   address: z.string().min(5, { message: 'Address is too short.' }),
   contactPersons: z.string().optional(),
   gstNumber: z.string().optional(),
@@ -39,102 +35,65 @@ const formSchema = z.object({
   remarks: z.string().optional(),
 });
 
-interface AddCustomerFormProps {
+interface EditCustomerFormProps {
+    customer: any;
     onSuccess: () => void;
 }
 
-const LOCAL_STORAGE_KEY = 'addCustomerForm';
-
-export function AddCustomerForm({ onSuccess }: AddCustomerFormProps) {
+export function EditCustomerForm({ customer, onSuccess }: EditCustomerFormProps) {
   const { toast } = useToast();
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      type: 'B2C',
-      salutation: 'Mr.',
-      firstName: '',
-      lastName: '',
-      companyName: '',
-      displayName: '',
-      email: '',
-      mobile: '',
-      password: '',
-      address: '',
-      gstNumber: '',
-      pan: '',
-      vehicleNumbers: [],
-      portalStatus: true,
-      remarks: '',
+        ...customer,
+        firstName: customer.firstName || '',
+        lastName: customer.lastName || '',
+        companyName: customer.companyName || '',
+        vehicleNumbers: customer.vehicles || [],
+        portalStatus: customer.portalStatus === 'Enabled',
     },
   });
 
-  useEffect(() => {
-    try {
-        const savedData = localStorage.getItem(LOCAL_STORAGE_KEY);
-        if (savedData) {
-            form.reset(JSON.parse(savedData));
-        }
-    } catch (e) {
-        console.error("Failed to parse customer form data from localStorage", e);
-    }
-  }, [form]);
-
-  useEffect(() => {
-    const subscription = form.watch((value) => {
-        try {
-            localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(value));
-        } catch(e) {
-            console.error("Failed to save customer form data to localStorage", e);
-        }
-    });
-    return () => subscription.unsubscribe();
-  }, [form]);
-
-
   async function onSubmit(values: z.infer<typeof formSchema>) {
     try {
-        const { email, password, type, companyName, firstName, lastName, displayName, workPhone, mobile, address, gstNumber, pan, portalStatus, remarks, salutation, vehicleNumbers } = values;
-        
-        const { user } = await createUserWithEmailAndPassword(auth, email, password);
-        
         const customerData: any = {
-            id: user.uid,
-            displayName: displayName,
-            type: type,
-            email: email,
-            workPhone: workPhone || '',
-            mobile: mobile,
-            address: address,
-            gstNumber: gstNumber || '',
-            pan: pan || '',
-            vehicles: vehicleNumbers,
-            role: 'customer',
-            portalStatus: portalStatus ? 'Enabled' : 'Disabled',
-            remarks: remarks || '',
-            salutation: salutation,
+            displayName: values.displayName,
+            type: values.type,
+            email: values.email,
+            workPhone: values.workPhone || '',
+            mobile: values.mobile,
+            address: values.address,
+            gstNumber: values.gstNumber || '',
+            pan: values.pan || '',
+            vehicles: values.vehicleNumbers,
+            portalStatus: values.portalStatus ? 'Enabled' : 'Disabled',
+            remarks: values.remarks || '',
+            salutation: values.salutation,
         };
 
-        if (type === 'B2B') {
-            customerData.companyName = companyName;
+        if (values.type === 'B2B') {
+            customerData.companyName = values.companyName;
+            customerData.firstName = null;
+            customerData.lastName = null;
         } else {
-            customerData.firstName = firstName;
-            customerData.lastName = lastName;
+            customerData.firstName = values.firstName;
+            customerData.lastName = values.lastName;
+            customerData.companyName = null;
         }
 
-        await setDoc(doc(db, 'users', user.uid), customerData);
+        await updateDoc(doc(db, 'users', customer.id), customerData);
 
         toast({
-            title: "Customer Created",
-            description: `${displayName} has been added.`,
+            title: "Customer Updated",
+            description: `${values.displayName} has been updated.`,
         });
-        localStorage.removeItem(LOCAL_STORAGE_KEY);
         onSuccess();
     } catch (error: any) {
-        console.error('Error creating customer:', error);
+        console.error('Error updating customer:', error);
         toast({
             title: "Error",
-            description: error.message || "Failed to create customer. They may already exist.",
+            description: error.message || "Failed to update customer.",
             variant: "destructive",
         });
     }
@@ -143,25 +102,6 @@ export function AddCustomerForm({ onSuccess }: AddCustomerFormProps) {
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6 max-h-[70vh] overflow-y-auto pr-4">
-        <div>
-          <FormField
-            control={form.control}
-            name="gstin"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Prefill with GSTIN</FormLabel>
-                <div className="flex gap-2">
-                  <FormControl>
-                    <Input placeholder="Enter GSTIN to prefill details" {...field} />
-                  </FormControl>
-                  <Button type="button" variant="outline" disabled>Prefill</Button>
-                </div>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-        </div>
-
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
            <FormField
               control={form.control}
@@ -374,19 +314,6 @@ export function AddCustomerForm({ onSuccess }: AddCustomerFormProps) {
                         </FormItem>
                     )}
                 />
-                <FormField
-                    control={form.control}
-                    name="password"
-                    render={({ field }) => (
-                        <FormItem>
-                        <FormLabel>Password</FormLabel>
-                        <FormControl>
-                            <Input type="password" placeholder="Enter a password for the customer portal" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                        </FormItem>
-                    )}
-                />
                  <FormField
                     control={form.control}
                     name="portalStatus"
@@ -419,7 +346,7 @@ export function AddCustomerForm({ onSuccess }: AddCustomerFormProps) {
 
 
         <div className="flex justify-end pt-4">
-          <Button type="submit">Create Customer</Button>
+          <Button type="submit">Save Changes</Button>
         </div>
       </form>
     </Form>
