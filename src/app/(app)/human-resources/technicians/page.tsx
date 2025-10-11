@@ -49,7 +49,7 @@ function mapRowToDocument(row: Record<string, any>): Partial<Technician> {
             deductions: [],
         },
         role: 'technician'
-    } as Technician;
+    } as unknown as Technician;
 }
 
 export default function TechniciansPage() {

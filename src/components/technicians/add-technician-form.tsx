@@ -6,36 +6,42 @@ import { useForm, useFieldArray, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { Button } from '@/components/ui/button';
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, FormDescription } from '@/components/ui/form';
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
-import { Technician, SalaryStructure } from '@/lib/technician-data';
+import { Technician } from '@/lib/technician-data';
 import { useEmployee } from '@/context/EmployeeContext';
 import { useState, useEffect } from 'react';
-import { CalendarIcon, Loader2, PlusCircle, Trash2 } from 'lucide-react';
+import { Loader2, PlusCircle, Trash2 } from 'lucide-react';
 import { Separator } from '../ui/separator';
-import { Popover, PopoverContent, PopoverTrigger } from '../ui/popover';
-import { Calendar } from '../ui/calendar';
-import { cn } from '@/lib/utils';
-import { format } from 'date-fns';
 import { Switch } from '../ui/switch';
-import { doc, setDoc } from 'firebase/firestore';
-import { db } from '@/lib/firebase';
+import { DatePicker } from '../ui/date-picker'; // Reusable DatePicker
+
+// Constants for select options
+const GENDER_OPTIONS = ['Male', 'Female', 'Other'] as const;
+const DEPARTMENT_OPTIONS = ['RSA', 'COCO', 'Management', 'HR', 'Finance'] as const;
+const SPECIALIZATION_OPTIONS = ['General', 'Battery', 'Electrical', 'Mechanical', 'Bodywork'] as const;
+const STATUS_OPTIONS = ['Active', 'Inactive'] as const;
+
+const phoneRegex = new RegExp(
+  /^([+]?[\s0-9]+)?(\d{3}|[(]?[0-9]+[)])?([-]?[\s]?[0-9])+$/
+);
 
 const formSchema = z.object({
   employeeId: z.string().min(1, { message: 'Employee ID is required.' }),
   name: z.string().min(2, { message: 'Name must be at least 2 characters.' }),
   email: z.string().email({ message: 'A valid email is required for login.' }),
-  password: z.string().min(6, { message: 'Password must be at least 6 characters.' }).optional(),
-  phone: z.string().min(10, { message: 'A valid phone number is required.' }),
-  gender: z.enum(['Male', 'Female', 'Other']),
+  password: z.string().min(6, { message: 'Password must be at least 6 characters.' }).optional().or(z.literal('')),
+  phone: z.string().regex(phoneRegex, 'Invalid phone number format.'),
+  gender: z.enum(GENDER_OPTIONS),
   dateOfBirth: z.date({ required_error: 'Date of birth is required.' }),
   dateOfJoining: z.date({ required_error: 'Date of joining is required.' }),
   dateOfLeaving: z.date().optional(),
   
   title: z.string().min(2, { message: 'Title/Designation is required.' }),
-  department: z.enum(['RSA', 'COCO', 'Management', 'HR', 'Finance']),
+  department: z.enum(DEPARTMENT_OPTIONS),
+  specialization: z.enum(SPECIALIZATION_OPTIONS),
   manager: z.string().optional(),
   location: z.string().min(2, { message: 'Location is required.' }),
 
@@ -51,9 +57,9 @@ const formSchema = z.object({
   
   stopSalary: z.boolean().default(false),
   pf: z.boolean().default(true),
-  pfStatus: z.enum(['Active', 'Inactive']),
+  pfStatus: z.enum(STATUS_OPTIONS),
   uan: z.string().optional(),
-  esicStatus: z.enum(['Active', 'Inactive']),
+  esicStatus: z.enum(STATUS_OPTIONS),
   esicIpNumber: z.string().optional(),
   
   salaryStructure: z.object({
@@ -79,12 +85,13 @@ const defaultFormValues = {
   name: '',
   email: '',
   password: '',
-  phone: '',
+  phone: '+91',
   gender: 'Male' as const,
   dateOfBirth: undefined,
   dateOfJoining: new Date(),
   title: '',
   department: 'COCO' as const,
+  specialization: 'General' as const,
   location: 'Main Branch',
   panNumber: '',
   aadhaarNumber: '',
@@ -113,63 +120,30 @@ interface AddTechnicianFormProps {
     technician?: Technician;
 }
 
-const LOCAL_STORAGE_KEY_PREFIX = 'addTechnicianForm_';
-
 export function AddTechnicianForm({ onSuccess, technician }: AddTechnicianFormProps) {
   const { toast } = useToast();
   const { addTechnician, updateTechnician, employees } = useEmployee();
   const [loading, setLoading] = useState(false);
-  const formId = technician?.id || 'new';
-  const LOCAL_STORAGE_KEY = `${LOCAL_STORAGE_KEY_PREFIX}${formId}`;
-
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(technician ? formSchema : formSchemaWithPassword),
-    defaultValues: technician ? {
-      ...technician,
-      password: '', // Don't pre-fill password
-      dateOfBirth: new Date(technician.dateOfBirth),
-      dateOfJoining: new Date(technician.dateOfJoining),
-      dateOfLeaving: technician.dateOfLeaving ? new Date(technician.dateOfLeaving) : undefined,
-    } : defaultFormValues,
+    defaultValues: defaultFormValues,
   });
 
    useEffect(() => {
     if (technician) {
       form.reset({
         ...technician,
-        password: '',
+        password: '', // Don't pre-fill password
+        phone: technician.phone || '+91',
         dateOfBirth: new Date(technician.dateOfBirth),
         dateOfJoining: new Date(technician.dateOfJoining),
         dateOfLeaving: technician.dateOfLeaving ? new Date(technician.dateOfLeaving) : undefined,
       });
     } else {
-      const savedData = localStorage.getItem(LOCAL_STORAGE_KEY);
-      if (savedData) {
-        try {
-          const parsedData = JSON.parse(savedData);
-          if (parsedData.dateOfBirth) parsedData.dateOfBirth = new Date(parsedData.dateOfBirth);
-          if (parsedData.dateOfJoining) parsedData.dateOfJoining = new Date(parsedData.dateOfJoining);
-          if (parsedData.dateOfLeaving) parsedData.dateOfLeaving = new Date(parsedData.dateOfLeaving);
-          form.reset(parsedData);
-        } catch (e) {
-          console.error("Failed to parse technician form data from localStorage", e);
-          form.reset(defaultFormValues);
-        }
-      } else {
-        form.reset(defaultFormValues);
-      }
+      form.reset(defaultFormValues);
     }
-  }, [technician, form, LOCAL_STORAGE_KEY]);
-
-  useEffect(() => {
-      if (!technician) {
-        const subscription = form.watch((value) => {
-            localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(value));
-        });
-        return () => subscription.unsubscribe();
-      }
-  }, [form, technician, LOCAL_STORAGE_KEY]);
+  }, [technician, form.reset]);
 
 
   const { fields: allowanceFields, append: appendAllowance, remove: removeAllowance } = useFieldArray({
@@ -185,32 +159,34 @@ export function AddTechnicianForm({ onSuccess, technician }: AddTechnicianFormPr
   async function onSubmit(values: z.infer<typeof formSchema>) {
     setLoading(true);
     try {
-        const dataToSave = {
-            ...values,
-            role: 'technician',
-            dateOfBirth: values.dateOfBirth.toISOString(),
-            dateOfJoining: values.dateOfJoining.toISOString(),
-            dateOfLeaving: values.dateOfLeaving ? values.dateOfLeaving.toISOString() : undefined,
-            specialization: 'General', // Default value
-            designation: values.title, // Map title to designation
-        };
+      const { password, title, ...technicianData } = values;
+  
+      // Create a clean data payload that matches the Technician type
+      const dataPayload = {
+        ...technicianData,
+        designation: title, // Map form's 'title' to 'designation'
+        dateOfBirth: values.dateOfBirth.toISOString(),
+        dateOfJoining: values.dateOfJoining.toISOString(),
+        dateOfLeaving: values.dateOfLeaving?.toISOString(),
+      };
+  
+      if (technician) {
+        // For updates, the context expects a partial Technician object
+        await updateTechnician(technician.id, dataPayload);
         
-        // This is a mock implementation since we can't create real auth users.
-        // In a real app, you would use Firebase Auth.
-        if (technician) {
-            await updateTechnician(technician.id, dataToSave as Partial<Technician>);
-        } else {
-            // Since we can't create a real auth user, we'll just add to the 'users' collection
-            const newId = doc(db, 'users', 'temp-id').id; // Generate a client-side ID
-            await addTechnician({ ...dataToSave, id: newId } as Technician);
+        if (password) {
+          console.log("Password update requested for:", technician.email); // Mock auth action
         }
-        
-        toast({
-            title: `Employee ${technician ? 'Updated' : 'Added'}`,
-            description: `${values.name} has been successfully ${technician ? 'updated' : 'added'}.`,
-        });
-        localStorage.removeItem(LOCAL_STORAGE_KEY);
-        onSuccess();
+      } else {
+        // For additions, the context handles the role and ID creation
+        await addTechnician(dataPayload, password || '');
+      }
+      
+      toast({
+        title: `Employee ${technician ? 'Updated' : 'Added'}`,
+        description: `${values.name} has been successfully ${technician ? 'updated' : 'added'}.`,
+      });
+      onSuccess();
     } catch (error: any) {
         console.error("Error saving employee:", error);
         toast({
@@ -242,25 +218,37 @@ export function AddTechnicianForm({ onSuccess, technician }: AddTechnicianFormPr
                     <FormItem><FormLabel>{technician ? 'New Password (Optional)' : 'Password'}</FormLabel><FormControl><Input type="password" {...field} /></FormControl><FormMessage /></FormItem>
                 )} />
                  <FormField control={form.control} name="phone" render={({ field }) => (
-                    <FormItem><FormLabel>Phone</FormLabel><FormControl><Input placeholder="e.g., 9876543210" {...field} /></FormControl><FormMessage /></FormItem>
+                    <FormItem><FormLabel>Phone</FormLabel><FormControl><Input placeholder="+91 98765 43210" {...field} /></FormControl><FormMessage /></FormItem>
                 )} />
                  <FormField control={form.control} name="gender" render={({ field }) => (
                     <FormItem><FormLabel>Gender</FormLabel>
                         <Select onValueChange={field.onChange} defaultValue={field.value}><FormControl><SelectTrigger><SelectValue /></SelectTrigger></FormControl>
-                            <SelectContent><SelectItem value="Male">Male</SelectItem><SelectItem value="Female">Female</SelectItem><SelectItem value="Other">Other</SelectItem></SelectContent>
+                            <SelectContent>
+                                {GENDER_OPTIONS.map(option => <SelectItem key={option} value={option}>{option}</SelectItem>)}
+                            </SelectContent>
                         </Select><FormMessage /></FormItem>
                 )} />
                  <FormField control={form.control} name="dateOfBirth" render={({ field }) => (
-                    <FormItem className="flex flex-col"><FormLabel>Date of Birth</FormLabel><Popover><PopoverTrigger asChild><FormControl>
-                        <Button variant={"outline"} className={cn("pl-3 text-left font-normal",!field.value && "text-muted-foreground")}>
-                        {field.value ? format(field.value, "PPP") : <span>Pick a date</span>}<CalendarIcon className="ml-auto h-4 w-4 opacity-50" /></Button>
-                    </FormControl></PopoverTrigger><PopoverContent className="w-auto p-0" align="start"><Calendar mode="single" selected={field.value} onSelect={field.onChange} captionLayout="dropdown-buttons" fromYear={1960} toYear={2010} initialFocus /></PopoverContent></Popover><FormMessage /></FormItem>
+                     <FormItem className="flex flex-col"><FormLabel>Date of Birth</FormLabel>
+                        <DatePicker 
+                            value={field.value} 
+                            onChange={field.onChange} 
+                            fromYear={1960}
+                            toYear={2010}
+                        />
+                        <FormMessage />
+                    </FormItem>
                 )} />
                  <FormField control={form.control} name="dateOfJoining" render={({ field }) => (
-                    <FormItem className="flex flex-col"><FormLabel>Date of Joining</FormLabel><Popover><PopoverTrigger asChild><FormControl>
-                        <Button variant={"outline"} className={cn("pl-3 text-left font-normal",!field.value && "text-muted-foreground")}>
-                        {field.value ? format(field.value, "PPP") : <span>Pick a date</span>}<CalendarIcon className="ml-auto h-4 w-4 opacity-50" /></Button>
-                    </FormControl></PopoverTrigger><PopoverContent className="w-auto p-0" align="start"><Calendar mode="single" selected={field.value} onSelect={field.onChange} initialFocus /></PopoverContent></Popover><FormMessage /></FormItem>
+                    <FormItem className="flex flex-col"><FormLabel>Date of Joining</FormLabel>
+                        <DatePicker 
+                            value={field.value} 
+                            onChange={field.onChange}
+                            fromYear={2010}
+                            toYear={new Date().getFullYear()}
+                        />
+                        <FormMessage />
+                    </FormItem>
                 )} />
             </div>
         </div>
@@ -276,7 +264,18 @@ export function AddTechnicianForm({ onSuccess, technician }: AddTechnicianFormPr
                  <FormField control={form.control} name="department" render={({ field }) => (
                     <FormItem><FormLabel>Department</FormLabel>
                         <Select onValueChange={field.onChange} defaultValue={field.value}><FormControl><SelectTrigger><SelectValue /></SelectTrigger></FormControl>
-                            <SelectContent><SelectItem value="RSA">RSA</SelectItem><SelectItem value="COCO">COCO</SelectItem><SelectItem value="Management">Management</SelectItem><SelectItem value="HR">HR</SelectItem><SelectItem value="Finance">Finance</SelectItem></SelectContent>
+                            <SelectContent>
+                                {DEPARTMENT_OPTIONS.map(option => <SelectItem key={option} value={option}>{option}</SelectItem>)}
+                            </SelectContent>
+                        </Select>
+                    <FormMessage /></FormItem>
+                )} />
+                 <FormField control={form.control} name="specialization" render={({ field }) => (
+                    <FormItem><FormLabel>Specialization</FormLabel>
+                        <Select onValueChange={field.onChange} defaultValue={field.value}><FormControl><SelectTrigger><SelectValue /></SelectTrigger></FormControl>
+                            <SelectContent>
+                                {SPECIALIZATION_OPTIONS.map(option => <SelectItem key={option} value={option}>{option}</SelectItem>)}
+                            </SelectContent>
                         </Select>
                     <FormMessage /></FormItem>
                 )} />
@@ -286,14 +285,14 @@ export function AddTechnicianForm({ onSuccess, technician }: AddTechnicianFormPr
                             <FormControl><SelectTrigger><SelectValue placeholder="Select a manager" /></SelectTrigger></FormControl>
                             <SelectContent>
                                 {employees.map(emp => (
-                                    <SelectItem key={emp.id} value={emp.name}>{emp.name}</SelectItem>
+                                    <SelectItem key={emp.id} value={emp.id}>{emp.name}</SelectItem>
                                 ))}
                             </SelectContent>
                         </Select>
                     <FormMessage /></FormItem>
                 )} />
                  <FormField control={form.control} name="location" render={({ field }) => (
-                     <FormItem className="lg:col-span-3"><FormLabel>Work Location / Branch</FormLabel><FormControl><Input placeholder="e.g., Main Branch" {...field} /></FormControl><FormMessage /></FormItem>
+                     <FormItem className="lg:col-span-2"><FormLabel>Work Location / Branch</FormLabel><FormControl><Input placeholder="e.g., Main Branch" {...field} /></FormControl><FormMessage /></FormItem>
                 )} />
              </div>
         </div>
@@ -317,14 +316,18 @@ export function AddTechnicianForm({ onSuccess, technician }: AddTechnicianFormPr
                 )} />
                  <FormField control={form.control} name="pfStatus" render={({ field }) => (
                     <FormItem><FormLabel>PF Status</FormLabel><Select onValueChange={field.onChange} defaultValue={field.value}><FormControl><SelectTrigger><SelectValue /></SelectTrigger></FormControl>
-                    <SelectContent><SelectItem value="Active">Active</SelectItem><SelectItem value="Inactive">Inactive</SelectItem></SelectContent></Select><FormMessage /></FormItem>
+                    <SelectContent>
+                        {STATUS_OPTIONS.map(option => <SelectItem key={option} value={option}>{option}</SelectItem>)}
+                    </SelectContent></Select><FormMessage /></FormItem>
                 )} />
                  <FormField control={form.control} name="uan" render={({ field }) => (
                     <FormItem><FormLabel>UAN</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>
                 )} />
                  <FormField control={form.control} name="esicStatus" render={({ field }) => (
                     <FormItem><FormLabel>ESIC Status</FormLabel><Select onValueChange={field.onChange} defaultValue={field.value}><FormControl><SelectTrigger><SelectValue /></SelectTrigger></FormControl>
-                    <SelectContent><SelectItem value="Active">Active</SelectItem><SelectItem value="Inactive">Inactive</SelectItem></SelectContent></Select><FormMessage /></FormItem>
+                    <SelectContent>
+                        {STATUS_OPTIONS.map(option => <SelectItem key={option} value={option}>{option}</SelectItem>)}
+                    </SelectContent></Select><FormMessage /></FormItem>
                 )} />
                 <FormField control={form.control} name="esicIpNumber" render={({ field }) => (
                     <FormItem className="lg:col-span-2"><FormLabel>ESIC IP Number</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>

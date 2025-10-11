@@ -41,7 +41,7 @@ export type Technician = {
   esicIpNumber?: string;
   
   // Kept for backward compatibility but can be phased out
-  specialization: 'General' | 'Battery' | 'Electrical' | 'Mechanical';
+  specialization: 'General' | 'Battery' | 'Electrical' | 'Mechanical'| 'Bodywork';
   designation: string; // Now handled by 'title'
   
   salaryStructure: SalaryStructure;
