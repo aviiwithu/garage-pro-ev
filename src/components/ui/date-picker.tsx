@@ -50,7 +50,9 @@ export function DatePicker({ value, onChange, placeholder = "Pick a date", fromY
           selected={value}
           onSelect={handleSelect}
           captionLayout="dropdown-years"
-         
+          fromYear={fromYear}
+          toYear={toYear}
+          defaultMonth={value || new Date()}
         />
       </PopoverContent>
     </Popover>
