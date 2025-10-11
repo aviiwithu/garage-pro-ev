@@ -50,3 +50,7 @@
     -moz-osx-font-smoothing: grayscale;
   }
 }
+
+.rdp-root {
+  --rdp-accent-color: white !important; /* Change the accent color to indigo. */
+}
