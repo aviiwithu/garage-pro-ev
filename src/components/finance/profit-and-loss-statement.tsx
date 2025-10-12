@@ -11,7 +11,7 @@ const ReportRow = ({ label, amount, isTotal = false, isSubItem = false, isFinal 
     <TableRow className={isFinal ? "border-t-2 border-primary" : ""}>
         <TableCell className={`font-medium ${isTotal ? 'font-bold' : ''} ${isSubItem ? 'pl-8' : ''}`}>{label}</TableCell>
         <TableCell className={`text-right ${isTotal ? 'font-bold' : ''}`}>
-            <span className="font-sans">₹</span><span className="font-code">{amount.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+            <span className="font-code">₹</span><span className="font-code">{amount.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
         </TableCell>
     </TableRow>
 );

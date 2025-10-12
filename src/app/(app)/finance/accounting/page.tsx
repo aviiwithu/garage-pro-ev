@@ -127,8 +127,8 @@ export default function AccountingPage() {
                     </CardHeader>
                     <CardContent>
                         <div className="text-2xl font-bold">
-                            <span className="font-sans">INR </span>
-                            <span className="font-sans">₹</span><span className="font-code">{kpiData.totalRevenue.toLocaleString()}</span>
+                            <span className="font-code">INR </span>
+                            <span className="font-code">₹</span><span className="font-code">{kpiData.totalRevenue.toLocaleString()}</span>
                         </div>
                         <p className="text-xs text-muted-foreground">From paid invoices</p>
                     </CardContent>
@@ -140,8 +140,8 @@ export default function AccountingPage() {
                     </CardHeader>
                     <CardContent>
                         <div className="text-2xl font-bold">
-                             <span className="font-sans">INR </span>
-                            <span className="font-sans">₹</span><span className="font-code">{kpiData.outstandingPayments.toLocaleString()}</span>
+                             <span className="font-code">INR </span>
+                            <span className="font-code">₹</span><span className="font-code">{kpiData.outstandingPayments.toLocaleString()}</span>
                         </div>
                         <p className="text-xs text-muted-foreground">From unpaid invoices</p>
                     </CardContent>
@@ -153,8 +153,8 @@ export default function AccountingPage() {
                     </CardHeader>
                     <CardContent>
                         <div className="text-2xl font-bold">
-                             <span className="font-sans">INR </span>
-                            <span className="font-sans">₹</span><span className="font-code">{kpiData.totalExpenses.toLocaleString()}</span>
+                             <span className="font-code">INR </span>
+                            <span className="font-code">₹</span><span className="font-code">{kpiData.totalExpenses.toLocaleString()}</span>
                         </div>
                         <p className="text-xs text-muted-foreground">Total operational costs</p>
                     </CardContent>
@@ -166,8 +166,8 @@ export default function AccountingPage() {
                     </CardHeader>
                     <CardContent>
                         <div className="text-2xl font-bold">
-                             <span className="font-sans">INR </span>
-                            <span className="font-sans">₹</span><span className="font-code">{kpiData.netProfit.toLocaleString()}</span>
+                             <span className="font-code">INR </span>
+                            <span className="font-code">₹</span><span className="font-code">{kpiData.netProfit.toLocaleString()}</span>
                         </div>
                         <p className="text-xs text-muted-foreground">Revenue - Expenses</p>
                     </CardContent>

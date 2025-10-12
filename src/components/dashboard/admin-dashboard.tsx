@@ -245,7 +245,7 @@ export function AdminDashboard() {
                             <DollarSign className="h-4 w-4 text-muted-foreground" />
                         </CardHeader>
                         <CardContent>
-                            <div className="text-xl font-bold"><span className="font-sans">₹</span><span className="font-code">{receivablesStats.totalOutstanding.toLocaleString()}</span></div>
+                            <div className="text-xl font-bold"><span className="font-code">₹</span><span className="font-code">{receivablesStats.totalOutstanding.toLocaleString()}</span></div>
                             <p className="text-xs text-muted-foreground">Across all unpaid invoices</p>
                         </CardContent>
                     </Card>
@@ -255,7 +255,7 @@ export function AdminDashboard() {
                             <AlertCircle className="h-4 w-4 text-muted-foreground" />
                         </CardHeader>
                         <CardContent>
-                            <div className="text-xl font-bold"><span className="font-sans">₹</span><span className="font-code">{receivablesStats.totalOverdue.toLocaleString()}</span></div>
+                            <div className="text-xl font-bold"><span className="font-code">₹</span><span className="font-code">{receivablesStats.totalOverdue.toLocaleString()}</span></div>
                              <p className="text-xs text-muted-foreground">Past due by over 30 days</p>
                         </CardContent>
                     </Card>
@@ -265,7 +265,7 @@ export function AdminDashboard() {
                             <CalendarCheck className="h-4 w-4 text-muted-foreground" />
                         </CardHeader>
                         <CardContent>
-                            <div className="text-xl font-bold"><span className="font-sans">₹</span><span className="font-code">{receivablesStats.dueWithin30Days.toLocaleString()}</span></div>
+                            <div className="text-xl font-bold"><span className="font-code">₹</span><span className="font-code">{receivablesStats.dueWithin30Days.toLocaleString()}</span></div>
                             <p className="text-xs text-muted-foreground">Upcoming payments</p>
                         </CardContent>
                     </Card>

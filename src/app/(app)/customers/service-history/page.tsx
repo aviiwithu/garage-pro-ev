@@ -121,8 +121,8 @@ export default function ServiceHistoryPage() {
                                             <TableCell>{record.assignedTo}</TableCell>
                                             <TableCell>TICKET-{record.id.substring(0,6).toUpperCase()}</TableCell>
                                             <TableCell className="text-right">
-                                                <span className="font-sans">INR </span>
-                                                <span className="font-sans">₹</span><span className="font-code">{calculateTotalCost(record).toFixed(2)}</span>
+                                                <span className="font-code">INR </span>
+                                                <span className="font-code">₹</span><span className="font-code">{calculateTotalCost(record).toFixed(2)}</span>
                                             </TableCell>
                                         </TableRow>
                                     </DialogTrigger>

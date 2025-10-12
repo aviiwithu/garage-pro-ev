@@ -24,8 +24,8 @@ export function ExpensesTable({ expenses }: { expenses: Expense[] }) {
             <TableCell><Badge variant="secondary">{expense.category}</Badge></TableCell>
             <TableCell className="font-medium">{expense.description}</TableCell>
             <TableCell className="text-right">
-              <span className="font-sans">INR </span>
-              <span className="font-sans">₹</span><span className="font-code">{expense.amount.toFixed(2)}</span>
+              <span className="font-code">INR </span>
+              <span className="font-code">₹</span><span className="font-code">{expense.amount.toFixed(2)}</span>
             </TableCell>
           </TableRow>
         ))}

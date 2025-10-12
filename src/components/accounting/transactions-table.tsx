@@ -70,8 +70,8 @@ export function TransactionsTable({ transactions, onViewInvoice }: TransactionsT
                     transaction.amount > 0 ? 'text-green-600' : 'text-red-600'
                 )}
             >
-                <span className="font-sans">{transaction.amount > 0 ? `+INR ` : `-INR `}</span>
-                <span className="font-sans">₹</span><span className="font-code">{Math.abs(transaction.amount).toFixed(2)}</span>
+                <span className="font-code">{transaction.amount > 0 ? `+INR ` : `-INR `}</span>
+                <span className="font-code">₹</span><span className="font-code">{Math.abs(transaction.amount).toFixed(2)}</span>
             </TableCell>
           </TableRow>
         ))}

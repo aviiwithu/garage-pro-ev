@@ -67,8 +67,8 @@ export function AmcDetails({ amc }: AmcDetailsProps) {
                      <div className="text-right mt-4">
                         <p className="text-muted-foreground">Plan Price</p>
                         <p className="text-2xl font-bold">
-                            <span className="font-sans">INR </span>
-                            <span className="font-sans">₹</span><span className="font-code">{planDetails.price.toLocaleString()}</span>
+                            <span className="font-code">INR </span>
+                            <span className="font-code">₹</span><span className="font-code">{planDetails.price.toLocaleString()}</span>
                         </p>
                     </div>
 

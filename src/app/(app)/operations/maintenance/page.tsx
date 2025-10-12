@@ -275,15 +275,15 @@ export default function MaintenancePage() {
                        <div className="rounded-lg bg-green-100 p-2">
                            <p className="font-medium text-green-800">Preventative Cost</p>
                            <p className="text-lg font-bold text-green-900">
-                               <span className="font-sans">INR </span>
-                               <span className="font-sans">₹</span><span className="font-code">{pred.preventativeCost.toLocaleString()}</span>
+                               <span className="font-code">INR </span>
+                               <span className="font-code">₹</span><span className="font-code">{pred.preventativeCost.toLocaleString()}</span>
                            </p>
                        </div>
                         <div className="rounded-lg bg-red-100 p-2">
                            <p className="font-medium text-red-800">Potential Failure Cost</p>
                            <p className="text-lg font-bold text-red-900">
-                               <span className="font-sans">INR </span>
-                               <span className="font-sans">₹</span><span className="font-code">{pred.potentialFailureCost.toLocaleString()}</span>
+                               <span className="font-code">INR </span>
+                               <span className="font-code">₹</span><span className="font-code">{pred.potentialFailureCost.toLocaleString()}</span>
                            </p>
                        </div>
                     </div>

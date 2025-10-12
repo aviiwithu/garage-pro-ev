@@ -40,8 +40,8 @@ export const servicesColumns: ColumnDef<ServiceItem>[] = [
     ),
     cell: ({ row }) => (
       <div>
-        <span className="font-sans">INR </span>
-        <span className="font-sans">₹</span><span className="font-code">{row.original.price.toFixed(2)}</span>
+        <span className="font-code">INR </span>
+        <span className="font-code">₹</span><span className="font-code">{row.original.price.toFixed(2)}</span>
       </div>
     ),
   },

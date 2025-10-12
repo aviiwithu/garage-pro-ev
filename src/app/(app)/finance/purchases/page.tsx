@@ -127,10 +127,10 @@ export default function PurchasesPage() {
                                             />
                                         </TableCell>
                                         <TableCell className="text-right">
-                                            <span className="font-sans">₹</span><span className="font-code">{item.price.toFixed(2)}</span>
+                                            <span className="font-code">₹</span><span className="font-code">{item.price.toFixed(2)}</span>
                                         </TableCell>
                                         <TableCell className="text-right">
-                                            <span className="font-sans">₹</span><span className="font-code">{(item.price * item.reorderQty).toFixed(2)}</span>
+                                            <span className="font-code">₹</span><span className="font-code">{(item.price * item.reorderQty).toFixed(2)}</span>
                                         </TableCell>
                                     </TableRow>
                                 ))}
@@ -141,7 +141,7 @@ export default function PurchasesPage() {
                                <div className="flex justify-between font-semibold">
                                    <span>Total Indent Value</span>
                                    <span>
-                                       <span className="font-sans">₹</span><span className="font-code">{totalIndentValue.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+                                       <span className="font-code">₹</span><span className="font-code">{totalIndentValue.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
                                    </span>
                                </div>
                                <div className="flex gap-2 justify-end">

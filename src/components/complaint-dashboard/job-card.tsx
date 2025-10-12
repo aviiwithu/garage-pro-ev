@@ -154,8 +154,8 @@ export function JobCard({ complaint: initialComplaint }: JobCardProps) {
                             <SelectTrigger><SelectValue placeholder={`Select a ${itemType}...`} /></SelectTrigger>
                             <SelectContent>
                                 {itemType === 'part' 
-                                    ? inventoryParts.map(p => <SelectItem key={p.id} value={p.id!}>{p.name} (<span className="font-sans">INR </span><span className="font-sans">₹</span><span className="font-code">{p.price.toFixed(2)}</span>)</SelectItem>)
-                                    : serviceItems.map(s => <SelectItem key={s.id} value={s.id!}>{s.name} (<span className="font-sans">INR </span><span className="font-sans">₹</span><span className="font-code">{s.price.toFixed(2)}</span>)</SelectItem>)
+                                    ? inventoryParts.map(p => <SelectItem key={p.id} value={p.id!}>{p.name} (<span className="font-code">INR </span><span className="font-code">₹</span><span className="font-code">{p.price.toFixed(2)}</span>)</SelectItem>)
+                                    : serviceItems.map(s => <SelectItem key={s.id} value={s.id!}>{s.name} (<span className="font-code">INR </span><span className="font-code">₹</span><span className="font-code">{s.price.toFixed(2)}</span>)</SelectItem>)
                                 }
                             </SelectContent>
                         </Select>
@@ -186,8 +186,8 @@ export function JobCard({ complaint: initialComplaint }: JobCardProps) {
                                 <TableCell><Badge variant="secondary">Service</Badge></TableCell>
                                 <TableCell>{service.gstRate || 0}%</TableCell>
                                 <TableCell className="text-right">
-                                    <span className="font-sans">INR </span>
-                                    <span className="font-sans">₹</span><span className="font-code">{service.price.toFixed(2)}</span>
+                                    <span className="font-code">INR </span>
+                                    <span className="font-code">₹</span><span className="font-code">{service.price.toFixed(2)}</span>
                                 </TableCell>
                                 {(isEstimationPhase || (isWorkPhase && complaint.status !== 'Closed' && complaint.status !== 'Resolved')) && (
                                 <TableCell className="text-right print:hidden">
@@ -205,8 +205,8 @@ export function JobCard({ complaint: initialComplaint }: JobCardProps) {
                                 <TableCell><Badge variant="outline">Part</Badge></TableCell>
                                 <TableCell>{part.gstRate || 0}%</TableCell>
                                 <TableCell className="text-right">
-                                    <span className="font-sans">INR </span>
-                                    <span className="font-sans">₹</span><span className="font-code">{part.price.toFixed(2)}</span>
+                                    <span className="font-code">INR </span>
+                                    <span className="font-code">₹</span><span className="font-code">{part.price.toFixed(2)}</span>
                                 </TableCell>
                                 {(isEstimationPhase || (isWorkPhase && complaint.status !== 'Closed' && complaint.status !== 'Resolved')) && (
                                 <TableCell className="text-right print:hidden">
@@ -227,11 +227,11 @@ export function JobCard({ complaint: initialComplaint }: JobCardProps) {
             <div className="flex justify-between items-center">
                 <p className="text-sm">Technician: {complaint.assignedTo}</p>
                 <div className="w-full max-w-xs space-y-2 text-right">
-                    <div className="flex justify-between"><span>Subtotal</span><span><span className="font-sans">INR </span><span className="font-sans">₹</span><span className="font-code">{subtotal.toFixed(2)}</span></span></div>
-                    <div className="flex justify-between"><span>CGST ({totalTax > 0 ? ((totalTax / 2) / subtotal * 100).toFixed(1) : 0}%)</span><span><span className="font-sans">INR </span><span className="font-sans">₹</span><span className="font-code">{(totalTax/2).toFixed(2)}</span></span></div>
-                    <div className="flex justify-between"><span>SGST ({totalTax > 0 ? ((totalTax / 2) / subtotal * 100).toFixed(1) : 0}%)</span><span><span className="font-sans">INR </span><span className="font-sans">₹</span><span className="font-code">{(totalTax/2).toFixed(2)}</span></span></div>
+                    <div className="flex justify-between"><span>Subtotal</span><span><span className="font-code">INR </span><span className="font-code">₹</span><span className="font-code">{subtotal.toFixed(2)}</span></span></div>
+                    <div className="flex justify-between"><span>CGST ({totalTax > 0 ? ((totalTax / 2) / subtotal * 100).toFixed(1) : 0}%)</span><span><span className="font-code">INR </span><span className="font-code">₹</span><span className="font-code">{(totalTax/2).toFixed(2)}</span></span></div>
+                    <div className="flex justify-between"><span>SGST ({totalTax > 0 ? ((totalTax / 2) / subtotal * 100).toFixed(1) : 0}%)</span><span><span className="font-code">INR </span><span className="font-code">₹</span><span className="font-code">{(totalTax/2).toFixed(2)}</span></span></div>
                     <Separator />
-                    <div className="flex justify-between font-bold text-lg"><p>Grand Total</p><p><span className="font-sans">INR </span><span className="font-sans">₹</span><span className="font-code">{grandTotal.toFixed(2)}</span></p></div>
+                    <div className="flex justify-between font-bold text-lg"><p>Grand Total</p><p><span className="font-code">INR </span><span className="font-code">₹</span><span className="font-code">{grandTotal.toFixed(2)}</span></p></div>
                 </div>
             </div>
             

@@ -114,8 +114,8 @@ export default function InvoicesPage() {
                                     <Badge className={getStatusColor(invoice.status)}>{invoice.status}</Badge>
                                 </TableCell>
                                 <TableCell className="text-right">
-                                    <span className="font-sans">INR </span>
-                                    <span className="font-sans">₹</span><span className="font-code">{invoice.total.toFixed(2)}</span>
+                                    <span className="font-code">INR </span>
+                                    <span className="font-code">₹</span><span className="font-code">{invoice.total.toFixed(2)}</span>
                                 </TableCell>
                                 <TableCell className="text-right">
                                     <DropdownMenu>

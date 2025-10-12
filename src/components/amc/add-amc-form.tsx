@@ -210,8 +210,8 @@ export function AddAmcForm({ onSuccess }: AddAmcFormProps) {
                     <SelectContent>
                         {amcPackages.map(plan => (
                              <SelectItem key={plan.id} value={plan.id}>
-                                {plan.name} (<span className="font-sans">INR </span>
-                                <span className="font-sans">₹</span><span className="font-code">{plan.price.toLocaleString()}</span>)
+                                {plan.name} (<span className="font-code">INR </span>
+                                <span className="font-code">₹</span><span className="font-code">{plan.price.toLocaleString()}</span>)
                             </SelectItem>
                         ))}
                     </SelectContent>

@@ -342,13 +342,13 @@ export function NewQuoteForm({ onSubmit }: NewQuoteFormProps) {
             <div className="space-y-4">
                 <Card>
                     <CardContent className="p-4 space-y-2">
-                        <div className="flex justify-between items-center text-sm"><span className="text-muted-foreground">Sub Total</span><span><span className="font-sans">₹</span><span className="font-code">{totals.subTotal.toFixed(2)}</span></span></div>
-                        <div className="flex justify-between items-center text-sm"><span className="text-muted-foreground">Total Tax</span><span><span className="font-sans">₹</span><span className="font-code">{totals.totalTax.toFixed(2)}</span></span></div>
+                        <div className="flex justify-between items-center text-sm"><span className="text-muted-foreground">Sub Total</span><span><span className="font-code">₹</span><span className="font-code">{totals.subTotal.toFixed(2)}</span></span></div>
+                        <div className="flex justify-between items-center text-sm"><span className="text-muted-foreground">Total Tax</span><span><span className="font-code">₹</span><span className="font-code">{totals.totalTax.toFixed(2)}</span></span></div>
                          <FormField control={form.control} name="adjustment" render={({ field }) => (
                             <FormItem className="flex justify-between items-center"><FormLabel className="text-muted-foreground text-sm">Adjustment</FormLabel><FormControl><Input type="number" className="w-24 h-8" {...field} /></FormControl></FormItem>
                         )} />
                         <Separator />
-                        <div className="flex justify-between items-center font-bold text-lg"><span >Total (₹)</span><span><span className="font-sans">₹</span><span className="font-code">{grandTotal.toFixed(2)}</span></span></div>
+                        <div className="flex justify-between items-center font-bold text-lg"><span >Total (₹)</span><span><span className="font-code">₹</span><span className="font-code">{grandTotal.toFixed(2)}</span></span></div>
                     </CardContent>
                 </Card>
             </div>

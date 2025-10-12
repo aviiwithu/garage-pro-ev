@@ -68,7 +68,7 @@ export default function SalesOrdersPage() {
                                         </Badge>
                                     </TableCell>
                                     <TableCell className="text-right">
-                                        <span className="font-sans">₹</span><span className="font-code">{so.total.toLocaleString()}</span>
+                                        <span className="font-code">₹</span><span className="font-code">{so.total.toLocaleString()}</span>
                                     </TableCell>
                                     <TableCell className="text-right">
                                         <Button variant="ghost" size="icon"><MoreVertical /></Button>
