@@ -15,8 +15,8 @@ import {
 } from "@/components/ui/popover"
 
 interface DatePickerProps {
-    value: Date | undefined;
-    onChange: (date: Date | undefined) => void;
+    value: string | undefined;
+    onChange: (date: string | undefined) => void;
     placeholder?: string;
     fromYear?: number;
     toYear?: number;
@@ -27,7 +27,7 @@ export function DatePicker({ value, onChange, placeholder = "Pick a date", fromY
   // The new onSelect handler from react-day-picker passes multiple arguments.
   // We only need the first one (the selected date) for our form.
   const handleSelect: SelectSingleEventHandler = (day) => {
-    onChange(day);
+    onChange(day ? new Date(day).toISOString() : undefined);
   };
 
   return (
@@ -47,12 +47,12 @@ export function DatePicker({ value, onChange, placeholder = "Pick a date", fromY
       <PopoverContent className="w-auto p-0">
         <Calendar
           mode="single"
-          selected={value}
+          selected={value?new Date(value):undefined}
           onSelect={handleSelect}
           captionLayout="dropdown-years"
           fromYear={fromYear}
           toYear={toYear}
-          defaultMonth={value || new Date()}
+          defaultMonth={value?new Date(value) : new Date()}
         />
       </PopoverContent>
     </Popover>

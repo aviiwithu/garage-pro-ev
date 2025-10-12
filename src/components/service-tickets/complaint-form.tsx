@@ -13,6 +13,7 @@ import { Loader2 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useState, useEffect } from 'react';
 import { LocationPicker } from './location-picker';
+import { PhoneInput } from '../ui/phone-input';
 
 const formSchema = z.object({
   // Branch Info
@@ -206,10 +207,9 @@ export function ComplaintForm({ onSubmit }: ComplaintFormProps) {
                     <FormItem>
                       <FormLabel>Contact Number</FormLabel>
                       <FormControl>
-                        <div className="flex items-center">
-                          <div className="relative">
-                            <Input
-                              type="text"
+                       
+                        <PhoneInput
+                        type="text"
                               placeholder="98765 43210"
                               className="pl-16"
                               maxLength={10}
@@ -218,16 +218,7 @@ export function ComplaintForm({ onSubmit }: ComplaintFormProps) {
                                 const value = e.target.value.replace(/[^0-9]/g, '');
                                 field.onChange(value);
                               }}
-                            />
-                            <div className="absolute inset-y-0 left-0 flex items-center pl-3">
-                              <span
-                                className="text-gray-500 sm:text-sm"
-                              >
-                                🇮🇳 +91
-                              </span>
-                            </div>
-                          </div>
-                        </div>
+                         />
                       </FormControl>
                       <FormMessage />
                     </FormItem>

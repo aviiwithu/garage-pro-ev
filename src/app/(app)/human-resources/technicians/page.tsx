@@ -64,7 +64,7 @@ export default function TechniciansPage() {
     const [uploadHeaders, setUploadHeaders] = useState<string[]>([]);
     const [isImporting, setIsImporting] = useState(false);
 
-    const handleEdit = (technician: Technician) => {
+    const handleEdit = (technician: Technician) => {        
         setSelectedTechnician(technician);
         setDialogOpen(true);
     };
@@ -344,8 +344,8 @@ export default function TechniciansPage() {
                                 <TableCell>{tech.email}</TableCell>
                                 <TableCell><Badge variant="secondary">{tech.specialization}</Badge></TableCell>
                                 <TableCell>
-                                    <span className="font-sans">INR </span>
-                                    <span className="font-sans">₹</span><span className="font-code">{calculateNetSalary(tech).toLocaleString()}</span>
+                                    <span className="font-code">INR </span>
+                                    <span className="font-code">₹</span><span className="font-code">{calculateNetSalary(tech).toLocaleString()}</span>
                                 </TableCell>
                                 <TableCell>{technicianWorkload[tech.name]?.activeTickets || 0}</TableCell>
                                 <TableCell>

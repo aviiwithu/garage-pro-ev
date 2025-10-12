@@ -38,8 +38,8 @@ export default function LoginPage() {
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      email: 'admin@garagepro.com',
-      password: 'password123',
+      email: 'kravinash6290@gmail.com',
+      password: '11111111',
     },
   });
 

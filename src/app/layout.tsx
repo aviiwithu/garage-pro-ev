@@ -32,7 +32,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className={`${ptSans.variable} ${spaceGrotesk.variable} ${inter.variable}`} suppressHydrationWarning>
-      <body className="font-sans antialiased" suppressHydrationWarning={true}>
+      <body className="font-code antialiased" suppressHydrationWarning={true}>
         <AuthProvider>
           <DataProvider>
             {children}
