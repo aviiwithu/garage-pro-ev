@@ -11,6 +11,7 @@ interface InventoryContextType {
   parts: InventoryPart[];
   services: ServiceItem[];
   batchAddOrUpdateParts: (partsToAdd: Omit<InventoryPart, 'id'>[], partsToUpdate: InventoryPart[]) => Promise<void>;
+  batchAddOrUpdateServices: (partsToAdd: Omit<ServiceItem, 'id'>[], partsToUpdate: ServiceItem[]) => Promise<void>;
   addService: (service: Omit<ServiceItem, 'id'>) => Promise<void>;
   findPartBySKU: (sku: string) => InventoryPart | undefined;
   loading: boolean;
@@ -30,7 +31,7 @@ export const InventoryProvider = ({ children }: { children: ReactNode }) => {
       return;
     }
 
-    if (role !== 'admin') {
+    if (role !== 'admin' && role !== 'technician') {
       setParts([]);
       setServices([]);
       setLoading(false);
@@ -91,6 +92,34 @@ export const InventoryProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
+   const batchAddOrUpdateServices = async (partsToAdd: Omit<ServiceItem, 'id'>[], partsToUpdate: ServiceItem[]) => {
+    try {
+        const allOperations = [
+          ...partsToAdd.map(part => ({ type: 'add' as const, data: part })),
+          ...partsToUpdate.map(part => ({ type: 'update' as const, data: part }))
+        ];
+
+        for (let i = 0; i < allOperations.length; i += 500) {
+          const batch = writeBatch(db);
+          const chunk = allOperations.slice(i, i + 500);
+
+          chunk.forEach(op => {
+            if (op.type === 'add') {
+              const newDocRef = doc(collection(db, 'inventoryServices'));
+              batch.set(newDocRef, op.data);
+            } else if (op.type === 'update') {
+              const updateDocRef = doc(db, 'inventoryServices', (op.data as ServiceItem).id!);
+              batch.update(updateDocRef, op.data);
+            }
+          });
+          await batch.commit();
+        }
+    } catch(error) {
+        console.error("InventoryContext: Error batch adding/updating parts:", error);
+        throw error;
+    }
+  };
+
 
   const addService = async (serviceData: Omit<ServiceItem, 'id'>) => {
     try {
@@ -106,7 +135,7 @@ export const InventoryProvider = ({ children }: { children: ReactNode }) => {
   }
 
   return (
-    <InventoryContext.Provider value={{ parts, services, batchAddOrUpdateParts, addService, findPartBySKU, loading }}>
+    <InventoryContext.Provider value={{ parts, services, batchAddOrUpdateParts, addService,batchAddOrUpdateServices, findPartBySKU, loading }}>
       {children}
     </InventoryContext.Provider>
   );

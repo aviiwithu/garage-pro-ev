@@ -9,116 +9,135 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, FormDes
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
-import { InventoryPart } from '@/lib/inventory-data';
-import { useEffect } from 'react';
+import { InventoryPart, ServiceItem } from '@/lib/inventory-data';
+import { useEffect, useState } from 'react';
 import { Checkbox } from '../ui/checkbox';
 import { Textarea } from '../ui/textarea';
 import { useInventory } from '@/context/InventoryContext';
+import { Separator } from '../ui/separator';
 
 const formSchema = z.object({
   id: z.string().optional(),
-  name: z.string().min(3, "Part name is too short."),
-  partNumber: z.string().min(3, "Part number is required."), // SKU
-  brand: z.string().min(2, "Brand is required."),
-  manufacturer: z.string().optional(),
-  description: z.string().optional(),
-  category: z.enum(['Electrical', 'Mechanical', 'Battery', 'Chassis', 'Body']),
-  stock: z.coerce.number().min(0, "Stock can't be negative."),
-  minStockLevel: z.coerce.number().min(0, "Minimum stock can't be negative."),
-  price: z.coerce.number().min(0, "Price can't be negative."), // Selling Rate
-  gstRate: z.coerce.number().min(0, "GST Rate is required."),
-  hsnSacCode: z.string().min(4, "HSN/SAC Code is required."),
-  supplier: z.string().min(2, "Supplier name is required."),
-  purchasePrice: z.coerce.number().min(0, "Purchase rate must be positive.").optional(),
-  purchaseAccount: z.string().optional(),
-  purchaseAccountCode: z.string().optional(),
-  inventoryAccount: z.string().optional(),
-  inventoryAccountCode: z.string().optional(),
+  name: z.string().min(3, "Item name is too short."),
   itemType: z.enum(['Goods', 'Service']).default('Goods'),
-  usageUnit: z.string().optional(),
-  taxable: z.boolean().default(true),
+  description: z.string().optional(),
+  price: z.coerce.number().min(0, "Price can't be negative."),
+  gstRate: z.coerce.number().min(0, "GST Rate is required."),
+  hsnSacCode: z.string().min(3, "Code is required."),
+  
+  // Goods only
+  partNumber: z.string().optional(),
+  brand: z.string().optional(),
+  category: z.string().optional(),
+  stock: z.coerce.number().optional(),
+  minStockLevel: z.coerce.number().optional(),
+  supplier: z.string().optional(),
+  
+  // Service only
+  serviceCategory: z.string().optional(),
+  duration: z.string().optional(),
+
+}).superRefine((data, ctx) => {
+    if (data.itemType === 'Goods') {
+        if (!data.partNumber || data.partNumber.length < 3) {
+            ctx.addIssue({ code: z.ZodIssueCode.custom, message: "Part Number is required.", path: ['partNumber'] });
+        }
+        if (!data.brand || data.brand.length < 2) {
+            ctx.addIssue({ code: z.ZodIssueCode.custom, message: "Brand is required.", path: ['brand'] });
+        }
+        if (data.stock === undefined || data.stock < 0) {
+            ctx.addIssue({ code: z.ZodIssueCode.custom, message: "Stock can't be negative.", path: ['stock'] });
+        }
+    }
+    if (data.itemType === 'Service') {
+         if (!data.serviceCategory) {
+            ctx.addIssue({ code: z.ZodIssueCode.custom, message: "Service Category is required.", path: ['serviceCategory'] });
+        }
+        if (!data.duration) {
+            ctx.addIssue({ code: z.ZodIssueCode.custom, message: "Duration is required.", path: ['duration'] });
+        }
+    }
 });
 
 const defaultFormValues = {
   name: '',
-  partNumber: '',
-  brand: '',
-  manufacturer: '',
+  itemType: 'Goods' as const,
   description: '',
-  category: 'Mechanical' as const,
-  stock: 0,
-  minStockLevel: 5,
   price: 0,
   gstRate: 18,
   hsnSacCode: '',
+  partNumber: '',
+  brand: '',
+  category: 'Mechanical',
+  stock: 0,
+  minStockLevel: 5,
   supplier: '',
-  purchasePrice: 0,
-  purchaseAccount: 'Cost of Goods Sold',
-  purchaseAccountCode: '5001',
-  inventoryAccount: 'Inventory Asset',
-  inventoryAccountCode: '1401',
-  itemType: 'Goods' as const,
-  usageUnit: 'Nos',
-  taxable: true,
+  serviceCategory: 'Routine',
+  duration: '',
 };
+
+type FormValues = z.infer<typeof formSchema>;
 
 interface AddInventoryItemFormProps {
     onSuccess: () => void;
-    item?: InventoryPart;
+    item?: InventoryPart | ServiceItem;
 }
-
-const LOCAL_STORAGE_KEY_PREFIX = 'addInventoryItemForm_';
 
 export function AddInventoryItemForm({ onSuccess, item }: AddInventoryItemFormProps) {
   const { toast } = useToast();
-  const { batchAddOrUpdateParts } = useInventory();
-  const form = useForm<z.infer<typeof formSchema>>({
+  const { addService, batchAddOrUpdateParts } = useInventory();
+  
+  const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
-    defaultValues: item || defaultFormValues,
+    defaultValues: item ? {
+        ...item,
+        category: item.itemType === 'Goods' ? item.category : undefined,
+        serviceCategory: item.itemType === 'Service' ? item.category : undefined
+    } : defaultFormValues,
   });
   
-  const formId = item?.id || 'new';
-  const LOCAL_STORAGE_KEY = `${LOCAL_STORAGE_KEY_PREFIX}${formId}`;
+  const itemType = form.watch('itemType');
 
-  useEffect(() => {
-    if (item) {
-        form.reset(item);
-    } else {
-      try {
-        const savedData = localStorage.getItem(LOCAL_STORAGE_KEY);
-        if (savedData) {
-            form.reset(JSON.parse(savedData));
-        } else {
-          form.reset(defaultFormValues);
-        }
-      } catch (e) {
-          console.error("Failed to parse inventory form data from localStorage", e);
-          form.reset(defaultFormValues);
-      }
-    }
-  }, [item, form, LOCAL_STORAGE_KEY]);
-
-  useEffect(() => {
-    const subscription = form.watch((value) => {
-        localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(value));
-    });
-    return () => subscription.unsubscribe();
-  }, [form, LOCAL_STORAGE_KEY]);
-
-
-  async function onSubmit(values: z.infer<typeof formSchema>) {
+  async function onSubmit(values: FormValues) {
     try {
-        if (item) { // This is an update
-            await batchAddOrUpdateParts([], [values as InventoryPart]);
-        } else { // This is a new item
-            await batchAddOrUpdateParts([values], []);
+        if (values.itemType === 'Service') {
+            const serviceData: Omit<ServiceItem, 'id'> = {
+                name: values.name,
+                itemType: 'Service',
+                category: values.serviceCategory as ServiceItem['category'],
+                description: values.description,
+                price: values.price,
+                gstRate: values.gstRate,
+                hsnSacCode: values.hsnSacCode,
+                duration: values.duration,
+            };
+            await addService(serviceData);
+        } else { // Goods
+            const partData: Omit<InventoryPart, 'id'> = {
+                name: values.name,
+                itemType: 'Goods',
+                partNumber: values.partNumber!,
+                brand: values.brand!,
+                category: values.category as InventoryPart['category'],
+                description: values.description,
+                stock: values.stock!,
+                minStockLevel: values.minStockLevel || 0,
+                price: values.price,
+                gstRate: values.gstRate,
+                hsnSacCode: values.hsnSacCode,
+                supplier: values.supplier || 'N/A',
+            };
+            if(item?.id){
+                await batchAddOrUpdateParts([], [{...partData, id: item.id}]);
+            } else {
+                await batchAddOrUpdateParts([partData], []);
+            }
         }
 
         toast({
             title: `Item ${item ? 'Updated' : 'Created'}`,
             description: `${values.name} has been successfully submitted.`,
         });
-        localStorage.removeItem(LOCAL_STORAGE_KEY);
         onSuccess();
     } catch (error) {
          toast({
@@ -131,146 +150,144 @@ export function AddInventoryItemForm({ onSuccess, item }: AddInventoryItemFormPr
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 max-h-[70vh] overflow-y-auto pr-4">
-        <FormField
-          control={form.control}
-          name="name"
-          render={({ field }) => (
-            <FormItem className="lg:col-span-2">
-              <FormLabel>Part Name</FormLabel>
-              <FormControl>
-                <Input placeholder="e.g., 12V Auxiliary Battery" {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        <FormField
-          control={form.control}
-          name="itemType"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Item Type</FormLabel>
-              <Select onValueChange={field.onChange} defaultValue={field.value}>
-                  <FormControl><SelectTrigger><SelectValue/></SelectTrigger></FormControl>
-                  <SelectContent><SelectItem value="Goods">Goods</SelectItem><SelectItem value="Service">Service</SelectItem></SelectContent>
-              </Select>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        <FormField control={form.control} name="description" render={({ field }) => (
-            <FormItem className="lg:col-span-3"><FormLabel>Description</FormLabel><FormControl><Textarea placeholder="Enter a description for the item" {...field} /></FormControl><FormMessage /></FormItem>
-        )} />
-
-
-        <FormField
-          control={form.control}
-          name="partNumber"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Part Number (SKU)</FormLabel>
-              <FormControl>
-                <Input placeholder="e.g., BT-12V-GPR" {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        <FormField
-          control={form.control}
-          name="brand"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Brand</FormLabel>
-              <FormControl>
-                <Input placeholder="e.g., Tesla, Generic" {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        <FormField control={form.control} name="manufacturer" render={({ field }) => (
-            <FormItem><FormLabel>Manufacturer</FormLabel><FormControl><Input placeholder="e.g., ACME Corp" {...field} /></FormControl><FormMessage /></FormItem>
-        )} />
-        
-        <FormField
-            control={form.control}
-            name="category"
-            render={({ field }) => (
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6 max-h-[70vh] overflow-y-auto pr-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <FormField
+              control={form.control}
+              name="itemType"
+              render={({ field }) => (
                 <FormItem>
-                <FormLabel>Category</FormLabel>
-                <Select onValueChange={field.onChange} defaultValue={field.value}>
-                    <FormControl><SelectTrigger><SelectValue /></SelectTrigger></FormControl>
-                    <SelectContent>
-                        <SelectItem value="Electrical">Electrical</SelectItem>
-                        <SelectItem value="Mechanical">Mechanical</SelectItem>
-                        <SelectItem value="Battery">Battery</SelectItem>
-                        <SelectItem value="Chassis">Chassis</SelectItem>
-                        <SelectItem value="Body">Body</SelectItem>
-                    </SelectContent>
-                </Select>
-                <FormMessage />
+                  <FormLabel>Item Type</FormLabel>
+                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                      <FormControl><SelectTrigger><SelectValue/></SelectTrigger></FormControl>
+                      <SelectContent>
+                          <SelectItem value="Goods">Goods (Part)</SelectItem>
+                          <SelectItem value="Service">Service</SelectItem>
+                      </SelectContent>
+                  </Select>
+                  <FormMessage />
                 </FormItem>
-            )}
-        />
-        
-        <FormField control={form.control} name="hsnSacCode" render={({ field }) => (
-            <FormItem><FormLabel>HSN/SAC Code</FormLabel><FormControl><Input placeholder="e.g., 8708" {...field} /></FormControl><FormMessage /></FormItem>
-        )} />
-        <FormField control={form.control} name="usageUnit" render={({ field }) => (
-            <FormItem><FormLabel>Usage Unit</FormLabel><FormControl><Input placeholder="e.g., Nos, Kgs" {...field} /></FormControl><FormMessage /></FormItem>
-        )} />
-        
-        <FormField control={form.control} name="price" render={({ field }) => (
-            <FormItem><FormLabel>Selling Price (Pre-Tax)</FormLabel><FormControl><Input type="number" step="0.01" {...field} /></FormControl><FormMessage /></FormItem>
-        )} />
-        <FormField control={form.control} name="purchasePrice" render={({ field }) => (
-            <FormItem><FormLabel>Purchase Price (Pre-Tax)</FormLabel><FormControl><Input type="number" step="0.01" {...field} /></FormControl><FormMessage /></FormItem>
-        )} />
-        <FormField
-            control={form.control}
-            name="taxable"
-            render={({ field }) => (
-                <FormItem className="flex flex-row items-center justify-center rounded-lg border p-3 mt-8">
-                <div className="space-y-0.5">
-                    <FormLabel>Taxable</FormLabel>
-                </div>
-                <FormControl className="ml-auto">
-                    <Checkbox checked={field.value} onCheckedChange={field.onChange} />
-                </FormControl>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="name"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>{itemType === 'Goods' ? 'Part Name' : 'Service Name'}</FormLabel>
+                  <FormControl>
+                    <Input placeholder={itemType === 'Goods' ? "e.g., 12V Auxiliary Battery" : "e.g., Oil Change"} {...field} />
+                  </FormControl>
+                  <FormMessage />
                 </FormItem>
-            )}
-        />
-        <FormField control={form.control} name="gstRate" render={({ field }) => (
-            <FormItem><FormLabel>GST Rate (%)</FormLabel><FormControl><Input type="number" {...field} /></FormControl><FormMessage /></FormItem>
-        )} />
+              )}
+            />
+             <FormField control={form.control} name="description" render={({ field }) => (
+                <FormItem className="md:col-span-2"><FormLabel>Description</FormLabel><FormControl><Textarea placeholder="Enter a description for the item" {...field} /></FormControl><FormMessage /></FormItem>
+            )} />
+        </div>
 
-        <FormField control={form.control} name="purchaseAccount" render={({ field }) => (
-            <FormItem><FormLabel>Purchase Account</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>
-        )} />
-        <FormField control={form.control} name="purchaseAccountCode" render={({ field }) => (
-            <FormItem><FormLabel>Purchase Account Code</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>
-        )} />
+        <Separator />
         
-        <FormField control={form.control} name="inventoryAccount" render={({ field }) => (
-            <FormItem><FormLabel>Inventory Account</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>
-        )} />
-        <FormField control={form.control} name="inventoryAccountCode" render={({ field }) => (
-            <FormItem><FormLabel>Inventory Account Code</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>
-        )} />
+        {itemType === 'Goods' && (
+            <div className="space-y-4">
+                <h4 className="font-medium">Part Details</h4>
+                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <FormField control={form.control} name="partNumber" render={({ field }) => (
+                        <FormItem><FormLabel>Part Number (SKU)</FormLabel><FormControl><Input placeholder="e.g., BT-12V-GPR" {...field} value={field.value || ''} /></FormControl><FormMessage /></FormItem>
+                    )} />
+                    <FormField control={form.control} name="brand" render={({ field }) => (
+                        <FormItem><FormLabel>Brand</FormLabel><FormControl><Input placeholder="e.g., Tesla, Generic" {...field} value={field.value || ''} /></FormControl><FormMessage /></FormItem>
+                    )} />
+                    <FormField control={form.control} name="category" render={({ field }) => (
+                        <FormItem><FormLabel>Category</FormLabel>
+                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                            <FormControl><SelectTrigger><SelectValue /></SelectTrigger></FormControl>
+                            <SelectContent>
+                                <SelectItem value="Electrical">Electrical</SelectItem>
+                                <SelectItem value="Mechanical">Mechanical</SelectItem>
+                                <SelectItem value="Battery">Battery</SelectItem>
+                                <SelectItem value="Chassis">Chassis</SelectItem>
+                                <SelectItem value="Body">Body</SelectItem>
+                            </SelectContent>
+                        </Select><FormMessage /></FormItem>
+                    )} />
+                    <FormField control={form.control} name="supplier" render={({ field }) => (
+                        <FormItem><FormLabel>Vendor</FormLabel><FormControl><Input placeholder="e.g., EV Parts Co." {...field} value={field.value || ''} /></FormControl><FormMessage /></FormItem>
+                    )} />
+                </div>
+            </div>
+        )}
         
-        <FormField control={form.control} name="stock" render={({ field }) => (
-            <FormItem><FormLabel>Opening Stock</FormLabel><FormControl><Input type="number" {...field} /></FormControl><FormMessage /></FormItem>
-        )} />
-        <FormField control={form.control} name="minStockLevel" render={({ field }) => (
-            <FormItem><FormLabel>Reorder Point</FormLabel><FormControl><Input type="number" {...field} /></FormControl><FormMessage /></FormItem>
-        )} />
-        <FormField control={form.control} name="supplier" render={({ field }) => (
-            <FormItem><FormLabel>Vendor</FormLabel><FormControl><Input placeholder="e.g., EV Parts Co." {...field} /></FormControl><FormMessage /></FormItem>
-        )} />
+        {itemType === 'Service' && (
+             <div className="space-y-4">
+                 <h4 className="font-medium">Service Details</h4>
+                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <FormField control={form.control} name="serviceCategory" render={({ field }) => (
+                        <FormItem><FormLabel>Service Category</FormLabel>
+                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                            <FormControl><SelectTrigger><SelectValue /></SelectTrigger></FormControl>
+                            <SelectContent>
+                                <SelectItem value="Routine">Routine</SelectItem>
+                                <SelectItem value="Bodywork">Bodywork</SelectItem>
+                                <SelectItem value="Diagnostics">Diagnostics</SelectItem>
+                                <SelectItem value="AC Repair">AC Repair</SelectItem>
+                                <SelectItem value="Other">Other</SelectItem>
+                            </SelectContent>
+                        </Select><FormMessage /></FormItem>
+                    )} />
+                    <FormField control={form.control} name="duration" render={({ field }) => (
+                        <FormItem><FormLabel>Expected Duration</FormLabel><FormControl><Input placeholder="e.g., 45 minutes" {...field} value={field.value || ''} /></FormControl><FormMessage /></FormItem>
+                    )} />
+                 </div>
+             </div>
+        )}
+
+        <Separator />
         
-        <div className="lg:col-span-3 flex justify-end">
+        <div className="space-y-4">
+            <h4 className="font-medium">Pricing & Taxation</h4>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <FormField control={form.control} name="price" render={({ field }) => (
+                    <FormItem><FormLabel>{itemType === 'Goods' ? 'Selling Price' : 'Base Price'} (Pre-Tax)</FormLabel><FormControl><Input type="number" step="0.01" {...field} /></FormControl><FormMessage /></FormItem>
+                )} />
+                <FormField control={form.control} name="hsnSacCode" render={({ field }) => (
+                    <FormItem><FormLabel>HSN / SAC Code</FormLabel><FormControl><Input placeholder="e.g., 8708 or 9987" {...field} /></FormControl><FormMessage /></FormItem>
+                )} />
+                <FormField control={form.control} name="gstRate" render={({ field }) => (
+                    <FormItem><FormLabel>GST Rate (%)</FormLabel>
+                    <Select onValueChange={(value) => field.onChange(Number(value))} defaultValue={String(field.value)}>
+                        <FormControl><SelectTrigger><SelectValue /></SelectTrigger></FormControl>
+                        <SelectContent>
+                            <SelectItem value="0">0%</SelectItem>
+                            <SelectItem value="5">5%</SelectItem>
+                            <SelectItem value="12">12%</SelectItem>
+                            <SelectItem value="18">18%</SelectItem>
+                            <SelectItem value="28">28%</SelectItem>
+                        </SelectContent>
+                    </Select><FormMessage /></FormItem>
+                )} />
+            </div>
+        </div>
+
+        {itemType === 'Goods' && (
+            <>
+                <Separator />
+                <div className="space-y-4">
+                    <h4 className="font-medium">Stock Management</h4>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <FormField control={form.control} name="stock" render={({ field }) => (
+                            <FormItem><FormLabel>Opening Stock</FormLabel><FormControl><Input type="number" {...field} value={field.value || 0} /></FormControl><FormMessage /></FormItem>
+                        )} />
+                         <FormField control={form.control} name="minStockLevel" render={({ field }) => (
+                            <FormItem><FormLabel>Reorder Point</FormLabel><FormControl><Input type="number" {...field} value={field.value || 0} /></FormControl><FormMessage /></FormItem>
+                        )} />
+                    </div>
+                </div>
+            </>
+        )}
+        
+        <div className="flex justify-end pt-4">
             <Button type="submit">{item ? 'Update' : 'Create'} Item</Button>
         </div>
       </form>

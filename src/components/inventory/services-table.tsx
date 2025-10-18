@@ -23,16 +23,24 @@ import {
 } from "@/components/ui/table"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
+import { ServiceItem } from "@/lib/inventory-data"
+import { TableMeta } from "@tanstack/react-table"
 
-interface DataTableProps<TData, TValue> {
-  columns: ColumnDef<TData, TValue>[]
-  data: TData[]
+interface DataTableProps {
+  columns: ColumnDef<ServiceItem, any>[]
+  data: ServiceItem[]
+  onEdit: (service: ServiceItem) => void;
 }
 
-export function ServicesTable<TData, TValue>({
+interface ServiceTableMeta {
+  editService: (service: ServiceItem) => void;
+}
+
+export function ServicesTable({
   columns,
   data,
-}: DataTableProps<TData, TValue>) {
+  onEdit
+}: DataTableProps) {
   const [sorting, setSorting] = React.useState<SortingState>([])
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([])
 
@@ -49,11 +57,14 @@ export function ServicesTable<TData, TValue>({
       sorting,
       columnFilters,
     },
-     initialState: {
-        pagination: {
-            pageSize: 5,
-        },
+    initialState: {
+      pagination: {
+        pageSize: 5,
+      },
     },
+    meta: {
+      editService: onEdit
+    } as ServiceTableMeta
   })
 
   return (

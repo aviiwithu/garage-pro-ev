@@ -12,6 +12,7 @@ import { useMemo } from 'react';
 import { useEmployee } from '@/context/EmployeeContext';
 import { Card, CardContent } from '../ui/card';
 import { ScrollArea } from '../ui/scroll-area';
+import { Technician } from '@/lib/technician-data';
 
 interface AssignTechnicianDialogProps {
   complaint: Complaint;
@@ -21,7 +22,7 @@ interface AssignTechnicianDialogProps {
 export function AssignTechnicianDialog({ complaint, onSuccess }: AssignTechnicianDialogProps) {
   const { assignTechnician, complaints } = useComplaint();
   const { technicians } = useEmployee();
-  const [selectedTechnician, setSelectedTechnician] = useState<string>('');
+  const [selectedTechnician, setSelectedTechnician] = useState<Technician>();
 
   const technicianWorkload = useMemo(() => {
     const workload: Record<string, { activeTickets: number }> = {};
@@ -51,12 +52,19 @@ export function AssignTechnicianDialog({ complaint, onSuccess }: AssignTechnicia
       <Card>
         <CardContent className="p-4">
             <ScrollArea className="h-72">
-                <RadioGroup onValueChange={setSelectedTechnician} className="p-1">
+                <RadioGroup 
+                value={selectedTechnician?.id}
+                onValueChange={(value)=>{
+                  const selectedTech = technicians.find(tech => tech.id === value);
+                  if(selectedTech){
+                    setSelectedTechnician(selectedTech); 
+                  }
+                }} className="p-1">
                     <div className="space-y-2">
                         {technicians.map(tech => (
                             <Label key={tech.id} htmlFor={tech.id} className="flex items-center justify-between p-3 border rounded-lg hover:bg-muted/50 cursor-pointer has-[:checked]:bg-primary has-[:checked]:text-primary-foreground">
                                 <div className="flex items-center gap-4">
-                                    <RadioGroupItem value={tech.name} id={tech.id} className="border-primary-foreground" />
+                                    <RadioGroupItem value={tech.id} id={tech.id} className="border-primary-foreground" />
                                     <div>
                                         <p className="font-semibold">{tech.name}</p>
                                         <p className="text-sm text-primary-foreground/80">{tech.specialization}</p>

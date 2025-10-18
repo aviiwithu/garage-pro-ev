@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback, useRef } from 'react';
+import { useState, useCallback, useRef, useEffect } from 'react';
 import { GoogleMap, useJsApiLoader } from '@react-google-maps/api';
 import usePlacesAutocomplete, {
   getGeocode,
@@ -122,6 +122,7 @@ export function LocationPicker({ value, onChange }: LocationPickerProps) {
       alert("Geolocation is not supported by this browser.");
     }
   };
+
 
   if (loadError) {
     return <div>Error loading maps. Please check your API key.</div>;

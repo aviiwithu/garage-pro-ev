@@ -175,7 +175,7 @@ function AppLayoutContent({ children }: { children: React.ReactNode }) {
     navItems = adminNavItems;
   }
 
-
+  
   return (
     <>
       <Sidebar>
@@ -218,7 +218,7 @@ function AppLayoutContent({ children }: { children: React.ReactNode }) {
                   <AvatarFallback>{user?.name?.charAt(0) ?? 'A'}</AvatarFallback>
               </Avatar>
               <div className="flex flex-col">
-                  <span className="text-sm font-semibold text-sidebar-foreground">{user?.name || 'Admin'}</span>
+                  <span className="text-sm font-semibold text-sidebar-foreground">{user?.name ||user?.displayName || 'NA'}</span>
                   <span className="text-xs text-muted-foreground">{user?.email}</span>
               </div>
            </div>

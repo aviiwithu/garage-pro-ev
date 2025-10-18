@@ -1,7 +1,13 @@
 
 "use client"
 
-import { ColumnDef } from "@tanstack/react-table"
+import { ColumnDef, TableMeta } from "@tanstack/react-table"
+
+declare module '@tanstack/table-core' {
+  interface TableMeta<TData> {
+    editService: (service: ServiceItem) => void
+  }
+}
 import { ServiceItem } from "@/lib/inventory-data"
 import { Button } from "@/components/ui/button"
 import { ArrowUpDown, MoreVertical } from "lucide-react"
@@ -57,14 +63,18 @@ export const servicesColumns: ColumnDef<ServiceItem>[] = [
   },
   {
     id: "actions",
-    cell: ({ row }) => {
+    cell: ({ row, table }) => {
       return (
         <DropdownMenu>
             <DropdownMenuTrigger asChild>
                 <Button variant="ghost" size="icon"><MoreVertical /></Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent>
-                <DropdownMenuItem>Edit</DropdownMenuItem>
+                <DropdownMenuItem onClick={() => {
+                  table.options.meta?.editService(row.original)
+                }}>
+                  Edit
+                </DropdownMenuItem>
             </DropdownMenuContent>
         </DropdownMenu>
       )

@@ -5,17 +5,18 @@ import React, { createContext, useContext, useState, ReactNode, useEffect } from
 import { Complaint, ComplaintStatus } from '@/lib/complaint-data';
 import { InventoryPart, ServiceItem } from '@/lib/inventory-data';
 import { Invoice } from '@/lib/invoice-data';
-import { collection, onSnapshot, query, orderBy, where, doc, updateDoc, addDoc, arrayUnion, arrayRemove, writeBatch } from 'firebase/firestore';
+import { collection, onSnapshot, query, orderBy, where, doc, updateDoc, addDoc, arrayUnion,or, arrayRemove, writeBatch } from 'firebase/firestore';
 import { useAuth } from './AuthProvider';
 import { db, storage } from '@/lib/firebase';
 import { uploadBytes, ref, getDownloadURL } from 'firebase/storage';
+import { Technician } from '@/lib/technician-data';
 
 interface ComplaintContextType {
   complaints: Complaint[];
   invoices: Invoice[];
   addComplaint: (complaint: Omit<Complaint, 'id' | 'status' | 'createdAt' | 'assignedTo' | 'statusHistory' | 'estimatedItems' | 'actualItems'>, attachments: FileList | null) => Promise<void>;
   updateComplaintStatus: (id: string, status: ComplaintStatus) => Promise<void>;
-  assignTechnician: (complaintId: string, technicianName: string) => Promise<void>;
+  assignTechnician: (complaintId: string, technician: Technician) => Promise<void>;
   addEstimatedItem: (complaintId: string, item: InventoryPart | ServiceItem, type: 'part' | 'service') => Promise<void>;
   addActualItem: (complaintId: string, item: InventoryPart | ServiceItem, type: 'part' | 'service') => Promise<void>;
   removeEstimatedItem: (complaintId: string, item: InventoryPart | ServiceItem, type: 'part' | 'service') => Promise<void>;
@@ -47,11 +48,13 @@ export const ComplaintProvider = ({ children }: { children: ReactNode }) => {
     setLoading(true);
     
     let complaintQuery;
-    if (role === 'admin' || role === 'technician') {
+    if (role === 'admin') {
       complaintQuery = query(collection(db, 'complaints'), orderBy('createdAt', 'desc'));
-    } else if (role === 'customer' && currentUserName) {
-       complaintQuery = query(collection(db, 'complaints'), where('customerName', '==', currentUserName), orderBy('createdAt', 'desc'));
-    } else {
+    } else if (role === 'customer') {
+       complaintQuery = query(collection(db, 'complaints'), or(where('contactNumber', '==', user?.phone),where('createdBy', '==', user?.id)), orderBy('createdAt', 'desc'));
+     } else if(role === 'technician'){
+       complaintQuery = query(collection(db, 'complaints'), where('assignedTechnicianId', '==', user?.id), orderBy('createdAt', 'desc'));
+      } else {
       setLoading(false);
       setComplaints([]);
       setInvoices([]);
@@ -103,6 +106,9 @@ export const ComplaintProvider = ({ children }: { children: ReactNode }) => {
             estimatedItems: { parts: [], services: [] },
             actualItems: { parts: [], services: [] },
             attachmentUrls: [],
+            createdBy:user?.id,
+            creatorRole:user?.role,
+            assignedTechnicianId:null
         };
         
         const docRef = await addDoc(collection(db, 'complaints'), newComplaintData);
@@ -143,7 +149,7 @@ export const ComplaintProvider = ({ children }: { children: ReactNode }) => {
     await updateDoc(complaintRef, updates);
   }
 
-  const assignTechnician = async (complaintId: string, technicianName: string) => {
+  const assignTechnician = async (complaintId: string, technician: Technician) => {
       const complaintRef = doc(db, 'complaints', complaintId);
       const statusUpdate = {
           status: 'Technician Assigned',
@@ -151,7 +157,8 @@ export const ComplaintProvider = ({ children }: { children: ReactNode }) => {
       };
       await updateDoc(complaintRef, {
           status: 'Technician Assigned',
-          assignedTo: technicianName,
+          assignedTo: technician.name,
+          assignedTechnicianId:technician.id,
           statusHistory: arrayUnion(statusUpdate),
       });
   }

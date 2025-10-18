@@ -22,13 +22,12 @@ const formSchema = z.object({
   gstin: z.string().optional(),
   type: z.enum(['B2B', 'B2C']),
   salutation: z.string().optional(),
-  firstName: z.string().optional(),
-  lastName: z.string().optional(),
+  name: z.string().optional(),
   companyName: z.string().optional(),
   displayName: z.string().min(2, { message: 'Display Name is required.' }),
   email: z.string().email({ message: 'Invalid email address.' }),
   workPhone: z.string().optional(),
-  mobile: z.string().regex(/^[6-9]\d{9}$/, "A valid 10-digit Indian contact number is required."),
+  phone: z.string().regex(/^[6-9]\d{9}$/, "A valid 10-digit Indian contact number is required."),
   password: z.string().min(8, { message: "Password must be at least 8 characters." }),
   address: z.string().min(5, { message: 'Address is too short.' }),
   contactPersons: z.string().optional(),
@@ -51,14 +50,14 @@ export function AddCustomerForm({ onSuccess }: AddCustomerFormProps) {
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
+      gstin:"",
       type: 'B2C',
       salutation: 'Mr.',
-      firstName: '',
-      lastName: '',
+      name: '',
       companyName: '',
       displayName: '',
       email: '',
-      mobile: '',
+      phone: '',
       password: '',
       address: '',
       gstNumber: '',
@@ -94,7 +93,7 @@ export function AddCustomerForm({ onSuccess }: AddCustomerFormProps) {
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
     try {
-        const { email, password, type, companyName, firstName, lastName, displayName, workPhone, mobile, address, gstNumber, pan, portalStatus, remarks, salutation, vehicleNumbers } = values;
+        const { email, password, type, companyName, name, displayName, workPhone, phone, address, gstNumber, pan, portalStatus, remarks, salutation, vehicleNumbers } = values;
         
         const { user } = await createUserWithEmailAndPassword(auth, email, password);
         
@@ -104,7 +103,7 @@ export function AddCustomerForm({ onSuccess }: AddCustomerFormProps) {
             type: type,
             email: email,
             workPhone: workPhone || '',
-            mobile: mobile,
+            phone: phone,
             address: address,
             gstNumber: gstNumber || '',
             pan: pan || '',
@@ -113,20 +112,20 @@ export function AddCustomerForm({ onSuccess }: AddCustomerFormProps) {
             portalStatus: portalStatus ? 'Enabled' : 'Disabled',
             remarks: remarks || '',
             salutation: salutation,
+            name:name
         };
 
-        if (type === 'B2B') {
-            customerData.companyName = companyName;
-        } else {
-            customerData.firstName = firstName;
-            customerData.lastName = lastName;
-        }
+        // if (type === 'B2B') {
+        //     customerData.companyName = companyName;
+        // } else {
+        //     customerData.name = name;
+        // }
 
         await setDoc(doc(db, 'users', user.uid), customerData);
 
         toast({
             title: "Customer Created",
-            description: `${displayName} has been added.`,
+            description: `${displayName||name} has been added.`,
         });
         localStorage.removeItem(LOCAL_STORAGE_KEY);
         onSuccess();
@@ -213,26 +212,16 @@ export function AddCustomerForm({ onSuccess }: AddCustomerFormProps) {
                 />
                  <FormField
                   control={form.control}
-                  name="firstName"
+                  name="name"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>First Name</FormLabel>
+                      <FormLabel>Name</FormLabel>
                       <FormControl><Input placeholder="John" {...field} /></FormControl>
                       <FormMessage />
                     </FormItem>
                   )}
                 />
-                 <FormField
-                  control={form.control}
-                  name="lastName"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Last Name</FormLabel>
-                      <FormControl><Input placeholder="Doe" {...field} /></FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+                
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
                  <FormField
@@ -287,7 +276,7 @@ export function AddCustomerForm({ onSuccess }: AddCustomerFormProps) {
                 />
                  <FormField
                   control={form.control}
-                  name="mobile"
+                  name="phone"
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Mobile</FormLabel>

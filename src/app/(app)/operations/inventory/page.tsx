@@ -67,7 +67,7 @@ function mapRowToDocument(row: Record<string, any>): Partial<InventoryPart> {
 export default function InventoryPage() {
     const [addItemDialogOpen, setAddItemDialogOpen] = useState(false);
     const [editItemDialogOpen, setEditItemDialogOpen] = useState(false);
-    const [selectedPart, setSelectedPart] = useState<InventoryPart | undefined>(undefined);
+    const [selectedPart, setSelectedPart] = useState<InventoryPart | ServiceItem| undefined>(undefined);
 
     const [file, setFile] = useState<File | null>(null);
     const [parsedData, setParsedData] = useState<Record<string, any>[]>([]);
@@ -250,8 +250,12 @@ export default function InventoryPage() {
         document.body.removeChild(link);
     };
     
-    const handleEditPart = (part: InventoryPart) => {
+    const handleEditPart = (part: InventoryPart) => {        
         setSelectedPart(part);
+        setEditItemDialogOpen(true);
+    };
+    const handleEditService = (service: ServiceItem) => {        
+        setSelectedPart(service);
         setEditItemDialogOpen(true);
     };
 
@@ -443,7 +447,7 @@ export default function InventoryPage() {
                             <Loader2 className="h-8 w-8 animate-spin" />
                         </div>
                     ) : (
-                        <ServicesTable columns={servicesColumns} data={services} />
+                        <ServicesTable columns={servicesColumns} data={services} onEdit={handleEditService} />
                     )}
                 </CardContent>
             </Card>

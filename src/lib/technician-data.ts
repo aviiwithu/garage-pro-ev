@@ -12,6 +12,7 @@ export type Technician = {
   name: string;
   email: string;
   phone: string;
+  displayName?:string;
   gender: 'Male' | 'Female' | 'Other';
   dateOfBirth: string; // ISO String
   dateOfJoining: string; // ISO String

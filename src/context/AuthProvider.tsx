@@ -20,7 +20,7 @@ import {
 import { doc, getDoc, setDoc } from 'firebase/firestore';
 import { verifyRecaptcha } from '@/app/actions/auth';
 
-export type User = (Customer | Technician) & { role: UserRole; firebaseUid?: string };
+export type User = Customer | Technician;
 export type UserRole = 'admin' | 'customer' | 'technician' | null;
 
 interface AuthContextType {
@@ -37,34 +37,8 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-const MOCK_USERS = {
-    'customer@garagepro.com': {
-        id: 'mock-customer-1',
-        name: 'John Customer',
-        displayName: 'John C.',
-        email: 'customer@garagepro.com',
-        role: 'customer',
-        type: 'B2C',
-        mobile: '1112223333',
-        address: '123 Customer Way',
-        vehicles: ['CUST-123'],
-        portalStatus: 'Enabled'
-    },
-    'tech@garagepro.com': {
-        id: 'mock-tech-1',
-        name: 'Jane Technician',
-        displayName: 'Jane T.',
-        email: 'tech@garagepro.com',
-        role: 'technician',
-        specialization: 'Electrical',
-        designation: 'Senior Technician',
-        phone: '4445556666'
-    }
-};
-
-
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
-  const [user, setUser] = useState<User | null>(null);
+  const [user, setUser] = useState<Customer|Technician| null>(null);
   const [loading, setLoading] = useState(true);
   const [viewAsRole, setViewAsRole] = useState<UserRole | null>(null);
   const router = useRouter();
@@ -75,41 +49,14 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
       setLoading(true);
-    console.log(firebaseUser);
       if (firebaseUser) {
-        if (firebaseUser.email === 'admin@garagepro.com') {
-             setUser({
-                id: 'admin-user',
-                firebaseUid: firebaseUser.uid,
-                name: 'Admin User',
-                displayName: 'Admin User',
-                email: 'admin@garagepro.com',
-                role: 'admin',
-                type: 'B2B',
-                mobile: '0000000000',
-                address: 'GaragePRO HQ',
-                vehicles: [],
-                portalStatus: 'Enabled',
-            } as User);
-            setLoading(false);
-            return;
-        }
-
-        if (firebaseUser.email && MOCK_USERS[firebaseUser.email as keyof typeof MOCK_USERS]) {
-            setUser({
-                ...MOCK_USERS[firebaseUser.email as keyof typeof MOCK_USERS],
-                firebaseUid: firebaseUser.uid,
-            } as User);
-            setLoading(false);
-            return;
-        }
-        
+       
         const userDocRef = doc(db, "users", firebaseUser.uid);
         const userDoc = await getDoc(userDocRef);
 
         if (userDoc.exists()) {
             const userData = userDoc.data() as User;
-            setUser({ ...userData, id: userDoc.id, firebaseUid: firebaseUser.uid });
+            setUser({ ...userData, id: userDoc.id});
         } else {
             const isGoogleSignIn = firebaseUser.providerData.some(
                 (provider) => provider.providerId === 'google.com'
@@ -118,13 +65,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
             if (isGoogleSignIn) {
                 const newUser: User = {
                     id: firebaseUser.uid,
-                    firebaseUid: firebaseUser.uid,
                     name: firebaseUser.displayName || 'New Google User',
                     displayName: firebaseUser.displayName || 'Google User',
                     email: firebaseUser.email!,
                     role: 'customer',
                     type: 'B2C',
-                    mobile: firebaseUser.phoneNumber || '',
+                    phone: firebaseUser.phoneNumber || '',
                     address: '',
                     vehicles: [],
                     portalStatus: 'Enabled'
@@ -136,7 +82,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
                 const customerDoc = await getDoc(customerDocRef);
                 if (customerDoc.exists()) {
                     const customerData = customerDoc.data() as User;
-                     setUser({ ...customerData, id: customerDoc.id, firebaseUid: firebaseUser.uid });
+                     setUser({ ...customerData, id: customerDoc.id });
                 } else {
                     console.error("No user profile found in Firestore for UID:", firebaseUser.uid);
                     await signOut(auth);
@@ -161,27 +107,27 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const login = async (email: string, pass: string, token: string) => {
 
-    if (email === 'admin@garagepro.com' && pass === 'password123') {
-        try {
-            await signInWithEmailAndPassword(auth, email, pass);
-        } catch (error: any) {
-            console.log("Admin user not found in Firebase Auth, proceeding with mock login.");
-            setUser({
-                id: 'admin-user',
-                firebaseUid: 'admin-uid-placeholder',
-                name: 'Admin User',
-                displayName: 'Admin User',
-                email: 'admin@garagepro.com',
-                role: 'admin',
-                type: 'B2B',
-                mobile: '0000000000',
-                address: 'GaragePRO HQ',
-                vehicles: [],
-                portalStatus: 'Enabled',
-            } as User);
-        }
-        return;
-    }
+    // if (email === 'admin@garagepro.com' && pass === 'password123') {
+    //     try {
+    //         await signInWithEmailAndPassword(auth, email, pass);
+    //     } catch (error: any) {
+    //         console.log("Admin user not found in Firebase Auth, proceeding with mock login.");
+    //         setUser({
+    //             id: 'admin-user',
+    //             firebaseUid: 'admin-uid-placeholder',
+    //             name: 'Admin User',
+    //             displayName: 'Admin User',
+    //             email: 'admin@garagepro.com',
+    //             role: 'admin',
+    //             type: 'B2B',
+    //             mobile: '0000000000',
+    //             address: 'GaragePRO HQ',
+    //             vehicles: [],
+    //             portalStatus: 'Enabled',
+    //         } as User);
+    //     }
+    //     return;
+    // }
     await signInWithEmailAndPassword(auth, email, pass);
   };
 
@@ -197,7 +143,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     setViewAsRole(null);
     router.push('/login');
   };
-
+  
+  console.log(user);
   return (
     <AuthContext.Provider value={{ 
         isAuthenticated,
@@ -214,6 +161,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     </AuthContext.Provider>
   );
 };
+
+
 
 export const useAuth = () => {
   const context = useContext(AuthContext);

@@ -18,7 +18,7 @@ export type InventoryPart = {
   purchaseAccountCode?: string;
   inventoryAccount?: string;
   inventoryAccountCode?: string;
-  itemType?: 'Goods' | 'Service'; // Product Type
+  itemType?: 'Goods'; // Product Type
   usageUnit?: string;
   taxable?: boolean;
 };
@@ -26,8 +26,11 @@ export type InventoryPart = {
 export type ServiceItem = {
     id?: string;
     name: string;
-    description: string;
-    price: number; // pre-tax
+    description?: string;
+    category: 'Routine' | 'Bodywork' | 'Diagnostics' | 'AC Repair' | 'Other';
+    price: number; // Base Price (pre-tax)
     gstRate: number; // e.g., 5, 12, 18, 28
     hsnSacCode: string; // SAC for services
-}
+    duration?: string; // e.g. "45 minutes"
+    itemType?: 'Service';
+};

@@ -52,6 +52,7 @@ export default function LoginPage() {
   async function onSubmit(values: z.infer<typeof formSchema>) {
     setLoading(true);
     try {
+      localStorage.clear();
         await login(values.email, values.password, token);
         router.push('/');
     } catch (error: any) {

@@ -15,9 +15,10 @@ import { Badge } from "../ui/badge"
 
 // This type is used to extend the table meta with our custom functions
 declare module '@tanstack/react-table' {
-  interface TableMeta<TData extends unknown> {
+  interface TableMeta<TData> {
     editPart: (part: InventoryPart) => void
   }
+
 }
 
 export const partsColumns: ColumnDef<InventoryPart>[] = [

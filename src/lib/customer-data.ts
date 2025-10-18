@@ -1,13 +1,12 @@
 export type Customer = {
   id: string;
-  firstName?: string;
-  lastName?: string;
+  name?: string;
   companyName?: string;
   displayName: string; 
   type: 'B2B' | 'B2C';
   email: string;
   workPhone?: string;
-  mobile: string;
+  phone: string;
   address: string;
   gstNumber?: string;
   pan?: string;
