@@ -42,7 +42,7 @@ export const columns: ColumnDef<Complaint>[] = [
     },
     cell: ({ row }) => {
         const id: string = row.getValue("id")
-        return <div className="font-medium">TICKET-{id.substring(0,6).toUpperCase()}</div>
+        return <div className="font-medium">{id}</div>
     }
   },
   {

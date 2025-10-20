@@ -234,8 +234,6 @@ export function AddTechnicianForm({
         dateOfLeaving: values.dateOfLeaving || null,
       };
 
-      console.log(dataPayload);
-
       if (technician) {
         await updateTechnician(technician.id, dataPayload);
 

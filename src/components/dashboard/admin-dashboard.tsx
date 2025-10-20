@@ -41,7 +41,6 @@ const chartConfig = {
 export function AdminDashboard() {
     const { complaints, invoices, loading: complaintsLoading } = useComplaint();
     const { technicians, loading: techniciansLoading } = useEmployee();
-    const { user, role, setViewAsRole, viewAsRole } = useAuth();
     const loading = complaintsLoading || techniciansLoading;
     const router = useRouter();
     const [clientReady, setClientReady] = useState(false);
@@ -169,17 +168,7 @@ export function AdminDashboard() {
             title="Dashboard"
             description="A high-level overview of your garage's operations."
         >
-        {role === 'admin' && (
-            <div className="flex items-center gap-2">
-                <Button variant={viewAsRole === 'technician' ? 'default' : 'outline'} onClick={() => setViewAsRole(viewAsRole === 'technician' ? null : 'technician')}>
-                    <Eye className="mr-2"/> View as Technician
-                </Button>
-                <Button variant={viewAsRole === 'customer' ? 'default' : 'outline'} onClick={() => setViewAsRole(viewAsRole === 'customer' ? null : 'customer')}>
-                    <Eye className="mr-2"/> View as Customer
-                </Button>
-                 {viewAsRole && <Button variant="ghost" onClick={() => setViewAsRole(null)}>Reset View</Button>}
-            </div>
-        )}
+        
         </PageHeader>
 
         <Tabs defaultValue="workshop">

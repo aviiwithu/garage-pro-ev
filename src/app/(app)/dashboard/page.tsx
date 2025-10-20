@@ -8,9 +8,7 @@ import { AdminDashboard } from '@/components/dashboard/admin-dashboard';
 import { TechnicianDashboard } from '@/components/dashboard/technician-dashboard';
 
 export default function DashboardPage() {
-    const { viewAsRole, role, loading } = useAuth();
-    
-    const effectiveRole = viewAsRole || role;
+    const { role, loading } = useAuth();
 
     if (loading) {
         return (
@@ -19,8 +17,8 @@ export default function DashboardPage() {
             </div>
         );
     }
-    
-    if (effectiveRole === 'technician') {
+
+    if (role === 'technician') {
         return <TechnicianDashboard />;
     }
 

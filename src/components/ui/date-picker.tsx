@@ -31,7 +31,7 @@ export function DatePicker({ value, onChange, placeholder = "Pick a date", fromY
   };
 
   return (
-    <Popover>
+    <Popover >
       <PopoverTrigger asChild>
         <Button
           variant={"outline"}

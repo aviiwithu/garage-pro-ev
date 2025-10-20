@@ -16,7 +16,7 @@ import {
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Loader2, LocateFixed, MapPin,Pin } from 'lucide-react';
+import { Loader2, LocateFixed, MapPin } from 'lucide-react';
 
 interface LocationPickerProps {
   value: string;
@@ -36,19 +36,23 @@ export function LocationPicker({ value, onChange }: LocationPickerProps) {
   const [selectedPlace, setSelectedPlace] = useState<google.maps.LatLngLiteral | null>(null);
   const mapRef = useRef<google.maps.Map | null>(null);
 
+  // Only initialize usePlacesAutocomplete when Google Maps is loaded
+  const placesAutocomplete = usePlacesAutocomplete({
+    requestOptions: {
+      componentRestrictions: { country: 'in' },
+    },
+    debounce: 300,
+    cache: false,
+    initOnMount: isLoaded, // Wait for Google Maps to load
+  });
+
   const {
     ready,
     value: autocompleteValue,
     suggestions: { status, data },
     setValue,
     clearSuggestions,
-  } = usePlacesAutocomplete({
-    requestOptions: {
-      componentRestrictions: { country: 'in' },
-    },
-    debounce: 300,
-    cache: false,
-  });
+  } = placesAutocomplete;
 
   const handleSelect = async (address: string) => {
     setValue(address, false);
@@ -123,7 +127,6 @@ export function LocationPicker({ value, onChange }: LocationPickerProps) {
     }
   };
 
-
   if (loadError) {
     return <div>Error loading maps. Please check your API key.</div>;
   }
@@ -142,7 +145,7 @@ export function LocationPicker({ value, onChange }: LocationPickerProps) {
       <div className="relative">
         <Input
           value={autocompleteValue}
-          disabled={!ready}
+          disabled={!ready || !isLoaded}
           onChange={(e) => setValue(e.target.value)}
           placeholder="Type an address to search..."
         />

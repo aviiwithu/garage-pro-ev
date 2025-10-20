@@ -12,7 +12,7 @@ import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuIte
 import { Loader2, MoreVertical } from 'lucide-react';
 import { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { AddTechnicianForm } from '@/components/technicians/add-technician-form';
-import { useEmployee, Employee } from '@/context/EmployeeContext';
+import { useEmployee } from '@/context/EmployeeContext';
 import { Technician } from '@/lib/technician-data';
 import Papa from 'papaparse';
 import { format } from 'date-fns';
@@ -27,7 +27,7 @@ function mapRowToDocument(row: Record<string, any>): Partial<Technician> {
     for (const key in row) {
         normalizedRow[key.trim().toLowerCase().replace(/[^a-z0-9]/gi, '')] = row[key];
     }
-    
+
     return {
         name: normalizedRow.name,
         email: normalizedRow.email,
@@ -64,7 +64,7 @@ export default function TechniciansPage() {
     const [uploadHeaders, setUploadHeaders] = useState<string[]>([]);
     const [isImporting, setIsImporting] = useState(false);
 
-    const handleEdit = (technician: Technician) => {        
+    const handleEdit = (technician: Technician) => {
         setSelectedTechnician(technician);
         setDialogOpen(true);
     };
@@ -73,7 +73,7 @@ export default function TechniciansPage() {
         setSelectedTechnician(undefined);
         setDialogOpen(true);
     }
-    
+
     const calculateNetSalary = (tech: Technician) => {
         if (!tech.salaryStructure) return 0;
         const totalEarnings = (tech.salaryStructure.basic || 0) + (tech.salaryStructure.hra || 0) + (tech.salaryStructure.allowances?.reduce((acc, curr) => acc + curr.amount, 0) || 0);
@@ -83,7 +83,7 @@ export default function TechniciansPage() {
 
     const technicianWorkload = useMemo(() => {
         const workload: Record<string, { activeTickets: number }> = {};
-        
+
         technicians.forEach(tech => {
             workload[tech.name] = { activeTickets: 0 };
         });
@@ -142,7 +142,7 @@ export default function TechniciansPage() {
             parseFile(uploadedFile);
         }
     };
-    
+
     const normalizeHeader = (header: string) => header.trim().toLowerCase().replace(/ /g, '').replace(/[^a-z0-9]/gi, '');
 
     const parseFile = (fileToParse: File) => {
@@ -151,7 +151,7 @@ export default function TechniciansPage() {
             skipEmptyLines: true,
             transformHeader: (header) => header.trim(),
             complete: (results) => {
-                 if (results.errors.length > 0) {
+                if (results.errors.length > 0) {
                     toast({ title: "Parsing Error", description: `Error: ${results.errors[0].message}`, variant: "destructive" });
                     return;
                 }
@@ -170,7 +170,7 @@ export default function TechniciansPage() {
             }
         });
     };
-    
+
     const handleImport = async () => {
         setIsImporting(true);
         try {
@@ -196,10 +196,10 @@ export default function TechniciansPage() {
             setUploadHeaders([]);
             setFile(null);
             const fileInput = document.getElementById('bulk-upload-input') as HTMLInputElement;
-            if(fileInput) fileInput.value = "";
+            if (fileInput) fileInput.value = "";
         }
     };
-    
+
     const handleDownloadSample = () => {
         const sampleData = [{
             name: "John Doe",
@@ -229,145 +229,149 @@ export default function TechniciansPage() {
     };
 
 
-  return (
-    <div className="flex-1 space-y-4 p-4 md:p-8 pt-6">
-      <PageHeader
-        title="Technician Directory"
-        description="Manage your technicians and their assignments."
-      >
-        <Button variant="outline" onClick={handleDownload} disabled={loading}>
-            <Download className="mr-2" />
-            Download CSV
-        </Button>
-        <Dialog open={dialogOpen} onOpenChange={(isOpen) => {
-            setDialogOpen(isOpen);
-            if (!isOpen) setSelectedTechnician(undefined);
-        }}>
-            <DialogTrigger asChild>
-                <Button onClick={handleAddNew}>
-                    <PlusCircle className="mr-2" />
-                    Add Technician
+    return (
+        <div className="flex-1 space-y-4 p-4 md:p-8 pt-6">
+            <PageHeader
+                title="Technician Directory"
+                description="Manage your technicians and their assignments."
+            >
+                <Button variant="outline" onClick={handleDownload} disabled={loading}>
+                    <Download className="mr-2" />
+                    Download CSV
                 </Button>
-            </DialogTrigger>
-            <DialogContent className="sm:max-w-3xl">
-                <DialogHeader>
-                    <DialogTitle>{selectedTechnician ? 'Edit' : 'Add New'} Technician</DialogTitle>
-                    <DialogDescription>
-                        {selectedTechnician ? 'Update the details for the technician.' : 'Fill in the details to add a new technician.'}
-                    </DialogDescription>
-                </DialogHeader>
-                <AddTechnicianForm 
-                    technician={selectedTechnician} 
-                    onSuccess={() => {
-                        setDialogOpen(false);
-                        setSelectedTechnician(undefined);
-                    }} 
-                />
-            </DialogContent>
-        </Dialog>
-      </PageHeader>
-        
-        <Card>
-            <CardHeader>
-                <CardTitle>Bulk Upload Technicians</CardTitle>
-                <CardDescription>Upload a CSV file to add multiple technicians at once.</CardDescription>
-            </CardHeader>
-            <CardContent className="flex flex-col gap-4">
-                <Button variant="outline" size="sm" onClick={handleDownloadSample} className="w-fit">
-                    <Download className="mr-2 h-4 w-4"/>
-                    Download Sample CSV
-                </Button>
-                <div className="flex items-center gap-2">
-                    <Input id="bulk-upload-input" type="file" accept=".csv" onChange={handleFileChange} className="max-w-xs" />
-                </div>
-            </CardContent>
-        </Card>
+                <Dialog modal={false} open={dialogOpen} onOpenChange={(isOpen) => {
+                    setDialogOpen(isOpen);
+                    if (!isOpen) setSelectedTechnician(undefined);
+                }}>
+                    <DialogTrigger asChild>
+                        <Button onClick={handleAddNew}>
+                            <PlusCircle className="mr-2" />
+                            Add Technician
+                        </Button>
+                    </DialogTrigger>
+                    <DialogContent className="sm:max-w-3xl">
+                        <DialogHeader>
+                            <DialogTitle>{selectedTechnician ? 'Edit' : 'Add New'} Technician</DialogTitle>
+                            <DialogDescription>
+                                {selectedTechnician ? 'Update the details for the technician.' : 'Fill in the details to add a new technician.'}
+                            </DialogDescription>
+                        </DialogHeader>
+                        <AddTechnicianForm
+                            technician={selectedTechnician}
+                            onSuccess={() => {
+                                setDialogOpen(false);
+                                setSelectedTechnician(undefined);
+                            }}
+                        />
+                    </DialogContent>
+                </Dialog>
+            </PageHeader>
 
-        {parsedData.length > 0 && (
             <Card>
                 <CardHeader>
-                    <CardTitle>Upload Preview & Confirmation</CardTitle>
-                    <CardDescription>Review the {parsedData.length} records before importing.</CardDescription>
+                    <CardTitle>Bulk Upload Technicians</CardTitle>
+                    <CardDescription>Upload a CSV file to add multiple technicians at once.</CardDescription>
                 </CardHeader>
-                <CardContent>
-                    <div className="overflow-x-auto border rounded-md max-h-64">
-                        <Table>
-                            <TableHeader className="sticky top-0 bg-background">
-                            <TableRow>
-                                {uploadHeaders.map(header => <TableHead key={header}>{header}</TableHead>)}
-                            </TableRow>
-                            </TableHeader>
-                            <TableBody>
-                            {parsedData.map((row, index) => (
-                                <TableRow key={index}>
-                                {uploadHeaders.map(header => <TableCell key={header}>{row[header]}</TableCell>)}
-                                </TableRow>
-                            ))}
-                            </TableBody>
-                        </Table>
-                    </div>
-                    <div className="flex justify-end mt-4">
-                        <Button onClick={handleImport} disabled={isImporting}>
-                            {isImporting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <FileUp className="mr-2 h-4 w-4" />}
-                            Confirm & Import
-                        </Button>
+                <CardContent className="flex flex-col gap-4">
+                    <Button variant="outline" size="sm" onClick={handleDownloadSample} className="w-fit">
+                        <Download className="mr-2 h-4 w-4" />
+                        Download Sample CSV
+                    </Button>
+                    <div className="flex items-center gap-2">
+                        <Input id="bulk-upload-input" type="file" accept=".csv" onChange={handleFileChange} className="max-w-xs" />
                     </div>
                 </CardContent>
             </Card>
-        )}
 
-        <Card>
-            <CardHeader>
-                <CardTitle>Technicians</CardTitle>
-            </CardHeader>
-            <CardContent>
-                {loading || complaintsLoading ? (
-                    <div className="flex justify-center items-center h-48">
-                        <Loader2 className="h-8 w-8 animate-spin" />
-                    </div>
-                ) : (
-                 <Table>
-                    <TableHeader>
-                        <TableRow>
-                            <TableHead>Name</TableHead>
-                            <TableHead>Email</TableHead>
-                            <TableHead>Specialization</TableHead>
-                            <TableHead>Net Salary</TableHead>
-                            <TableHead>Active Tickets</TableHead>
-                            <TableHead>Actions</TableHead>
-                        </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                        {technicians.map((tech) => (
-                            <TableRow key={tech.id}>
-                                <TableCell className="font-medium">{tech.name}</TableCell>
-                                <TableCell>{tech.email}</TableCell>
-                                <TableCell><Badge variant="secondary">{tech.specialization}</Badge></TableCell>
-                                <TableCell>
-                                    <span className="font-code">INR </span>
-                                    <span className="font-code">₹</span><span className="font-code">{calculateNetSalary(tech).toLocaleString()}</span>
-                                </TableCell>
-                                <TableCell>{technicianWorkload[tech.name]?.activeTickets || 0}</TableCell>
-                                <TableCell>
-                                    <DropdownMenu>
-                                        <DropdownMenuTrigger asChild>
-                                            <Button variant="ghost" size="icon"><MoreVertical /></Button>
-                                        </DropdownMenuTrigger>
-                                        <DropdownMenuContent>
-                                            <DropdownMenuItem onClick={() => handleEdit(tech)}>Edit</DropdownMenuItem>
-                                            <DropdownMenuItem className="text-destructive">Remove</DropdownMenuItem>
-                                        </DropdownMenuContent>
-                                    </DropdownMenu>
-                                </TableCell>
-                            </TableRow>
-                        ))}
-                    </TableBody>
-                 </Table>
-                )}
-            </CardContent>
-        </Card>
-    </div>
-  );
+            {parsedData.length > 0 && (
+                <Card>
+                    <CardHeader>
+                        <CardTitle>Upload Preview & Confirmation</CardTitle>
+                        <CardDescription>Review the {parsedData.length} records before importing.</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                        <div className="overflow-x-auto border rounded-md max-h-64">
+                            <Table>
+                                <TableHeader className="sticky top-0 bg-background">
+                                    <TableRow>
+                                        {uploadHeaders.map(header => <TableHead key={header}>{header}</TableHead>)}
+                                    </TableRow>
+                                </TableHeader>
+                                <TableBody>
+                                    {parsedData.map((row, index) => (
+                                        <TableRow key={index}>
+                                            {uploadHeaders.map(header => <TableCell key={header}>{row[header]}</TableCell>)}
+                                        </TableRow>
+                                    ))}
+                                </TableBody>
+                            </Table>
+                        </div>
+                        <div className="flex justify-end mt-4">
+                            <Button onClick={handleImport} disabled={isImporting}>
+                                {isImporting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <FileUp className="mr-2 h-4 w-4" />}
+                                Confirm & Import
+                            </Button>
+                        </div>
+                    </CardContent>
+                </Card>
+            )}
+
+            <Card>
+                <CardHeader>
+                    <CardTitle>Technicians</CardTitle>
+                </CardHeader>
+                <CardContent>
+                    {loading || complaintsLoading ? (
+                        <div className="flex justify-center items-center h-48">
+                            <Loader2 className="h-8 w-8 animate-spin" />
+                        </div>
+                    ) : (
+                        <Table>
+                            <TableHeader>
+                                <TableRow>
+                                    <TableHead>Name</TableHead>
+                                    <TableHead>Email</TableHead>
+                                    <TableHead>Specialization</TableHead>
+                                    <TableHead>Net Salary</TableHead>
+                                    <TableHead>Active Tickets</TableHead>
+                                    <TableHead>Actions</TableHead>
+                                </TableRow>
+                            </TableHeader>
+                            <TableBody>
+                                {technicians.map((tech) => (
+                                    <TableRow key={tech.id}>
+                                        <TableCell className="font-medium">{tech.name}</TableCell>
+                                        <TableCell>{tech.email}</TableCell>
+                                        <TableCell><Badge variant="secondary">{tech.specialization}</Badge></TableCell>
+                                        <TableCell>
+                                            <span className="font-code">INR </span>
+                                            <span className="font-code">₹</span><span className="font-code">{calculateNetSalary(tech).toLocaleString()}</span>
+                                        </TableCell>
+                                        <TableCell>{technicianWorkload[tech.name]?.activeTickets || 0}</TableCell>
+                                        <TableCell>
+                                            <DropdownMenu modal={false} >
+                                                <DropdownMenuTrigger asChild>
+                                                    <Button variant="ghost" size="icon"><MoreVertical /></Button>
+                                                </DropdownMenuTrigger>
+                                                <DropdownMenuContent>
+                                                    <DropdownMenuItem onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        handleEdit(tech);
+                                                    }}>Edit</DropdownMenuItem>
+                                                    <DropdownMenuItem className="text-destructive">Remove</DropdownMenuItem>
+                                                </DropdownMenuContent>
+                                            </DropdownMenu>
+                                            {/* <button type="button" onClick={() => handleEdit(tech)}  >Edit</button> */}
+                                        </TableCell>
+                                    </TableRow>
+                                ))}
+                            </TableBody>
+                        </Table>
+                    )}
+                </CardContent>
+            </Card>
+        </div>
+    );
 }
 
-    
+

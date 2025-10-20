@@ -124,7 +124,7 @@ export default function ComplaintDashboardPage() {
             <ComplaintsDataTable columns={columns} data={filteredComplaints} onRowClick={handleRowClick} />
         )}
 
-        <Dialog open={!!selectedComplaint} onOpenChange={(open) => !open && handleCloseDialog()}>
+        <Dialog modal={false} open={!!selectedComplaint} onOpenChange={(open) => !open && handleCloseDialog()}>
             <DialogContent className="max-w-3xl h-[90vh] flex flex-col">
                 <DialogHeader>
                     <DialogTitle>Job Card / Service Ticket</DialogTitle>

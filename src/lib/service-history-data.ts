@@ -1,7 +1,7 @@
 
 export type ServiceRecord = {
     id: string;
-    ticketId: string;
+    complaintId: string;
     vehicleNumber: string;
     date: string; // ISO Date string
     servicePerformed: string;

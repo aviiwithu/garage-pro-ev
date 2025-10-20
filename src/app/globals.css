@@ -52,5 +52,25 @@
 }
 
 .rdp-root {
-  --rdp-accent-color: white !important; /* Change the accent color to indigo. */
+  --rdp-accent-color: white !important;
+  /* Change the accent color to indigo. */
+
+  .rdp-caption_dropdowns select,
+  .rdp-caption_dropdowns .months_dropdown {
+    background-color: #034948 !important;
+    /* GaragePRO dark teal */
+    color: #FFA500 !important;
+    /* Orange accent, or use #F5F5F5 for light text */
+    border: none;
+  }
 }
+
+
+.rdp-years_dropdown {
+  background-color: #030711 !important;
+  padding: 5px 16px !important;
+  border-radius: 10px !important;
+  width: 90px !important;
+  text-align: center !important;
+}
+

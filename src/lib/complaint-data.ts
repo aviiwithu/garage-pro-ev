@@ -28,4 +28,5 @@ export type Complaint = {
   estimatedItems: JobItems;
   actualItems: JobItems;
   attachmentUrls?: string[];
+  customerId:string;
 };

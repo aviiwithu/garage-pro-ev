@@ -50,7 +50,7 @@ export function CustomerList({ customers }: { customers: Customer[] }) {
     if (customer.type === 'B2B') {
       return customer.companyName;
     } else {
-      return `${customer.firstName} ${customer.lastName}`;
+      return `${customer.name}`;
     }
   };
 
@@ -81,7 +81,7 @@ export function CustomerList({ customers }: { customers: Customer[] }) {
                     <Badge variant={customer.type === 'B2B' ? 'secondary' : 'default'}>{customer.type}</Badge>
                     </TableCell>
                     <TableCell>{customer.email}</TableCell>
-                    <TableCell>{customer.mobile}</TableCell>
+                    <TableCell>{customer.phone}</TableCell>
                     <TableCell>{customer.vehicles.join(', ')}</TableCell>
                     <TableCell>
                         <DropdownMenu>

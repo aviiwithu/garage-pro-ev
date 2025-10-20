@@ -8,12 +8,12 @@ import { Loader2 } from 'lucide-react';
 
 export default function HomePage() {
   const router = useRouter();
-  const { role, loading: authLoading, isAuthenticated, viewAsRole } = useAuth();
+  const { role, loading: authLoading, isAuthenticated } = useAuth();
 
   useEffect(() => {
     // Only perform redirects if authentication status is fully loaded and role is determined
     if (!authLoading && isAuthenticated && role) {
-      const effectiveRole = viewAsRole || role;
+      const effectiveRole = role;
 
       switch (effectiveRole) {
         case "admin":
@@ -36,7 +36,7 @@ export default function HomePage() {
     }
     // If authentication is still loading or the role is not yet determined,
     // this component will continue showing the loading spinner, preventing premature redirects.
-  }, [role, authLoading, isAuthenticated, router, viewAsRole]);
+  }, [role, authLoading, isAuthenticated, router]);
 
   return (
     <div className="flex h-screen w-full items-center justify-center bg-background">

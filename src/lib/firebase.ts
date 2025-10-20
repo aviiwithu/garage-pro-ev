@@ -1,6 +1,7 @@
 
 // src/lib/firebase.ts
 import { initializeApp, getApps, getApp, FirebaseApp } from "firebase/app";
+import { initializeAppCheck, ReCaptchaV3Provider } from "firebase/app-check";
 import { getAuth, Auth } from "firebase/auth";
 import { getFirestore, Firestore } from "firebase/firestore";
 import { getStorage, FirebaseStorage } from "firebase/storage";
@@ -20,10 +21,20 @@ export const firebaseConfig = {
 // Singleton pattern to initialize and export Firebase services.
 // This ensures that Firebase is initialized only once.
 const app: FirebaseApp = getApps().length > 0 ? getApp() : initializeApp(firebaseConfig);
+let AppCheckInstance=null;
+if (typeof window !== 'undefined' && !AppCheckInstance) {
+  console.log("App check initializing",process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY);
+  // self.FIREBASE_APPCHECK_DEBUG_TOKEN = true;
+  initializeAppCheck(app, {
+    provider: new ReCaptchaV3Provider(process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY||''),
+    isTokenAutoRefreshEnabled: true
+  });
 
+}
 const auth: Auth = getAuth(app);
 const db: Firestore = getFirestore(app);
 const storage: FirebaseStorage = getStorage(app);
+
 
 
 export { app, auth, db, storage };
