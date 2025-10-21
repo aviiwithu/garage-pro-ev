@@ -22,7 +22,7 @@ export const firebaseConfig = {
 // This ensures that Firebase is initialized only once.
 const app: FirebaseApp = getApps().length > 0 ? getApp() : initializeApp(firebaseConfig);
 let AppCheckInstance=null;
-if (typeof window !== 'undefined' && !AppCheckInstance) {
+if (typeof window !== 'undefined') {
   console.log("App check initializing",process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY);
   // self.FIREBASE_APPCHECK_DEBUG_TOKEN = true;
   initializeAppCheck(app, {
