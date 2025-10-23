@@ -6,8 +6,10 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { useState } from 'react';
 import { cn } from '@/lib/utils';
 import { Input } from '@/components/ui/input';
-import { Search } from 'lucide-react';
+import { Search, ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
+import { Button } from '@/components/ui/button';
+import { useRouter } from 'next/navigation';
 
 const settingsConfig = [
   {
@@ -25,8 +27,8 @@ const settingsConfig = [
     category: 'Users & Roles',
     id: 'users',
     items: [
-      { name: 'Users', id: 'users-manage', href: '#' },
-      { name: 'Roles', id: 'users-roles', href: '#' },
+      { name: 'Users', id: 'users-manage', href: '/settings/users' },
+      { name: 'Roles', id: 'users-roles', href: '/settings/roles' },
       { name: 'User Preferences', id: 'users-prefs', href: '#' },
     ],
   },
@@ -146,17 +148,19 @@ const settingsConfig = [
 
 export default function SettingsPage() {
   const [searchTerm, setSearchTerm] = useState('');
-  const [activeCategory, setActiveCategory] = useState(settingsConfig[0].id);
+  const [selectedCategory, setSelectedCategory] = useState<string | null>(settingsConfig[0].id);
 
   const filteredConfig = settingsConfig.map(category => ({
     ...category,
     items: category.items.filter(item => item.name.toLowerCase().includes(searchTerm.toLowerCase())),
   })).filter(category => category.items.length > 0);
 
+  const activeCategoryDetails = filteredConfig.find(c => c.id === selectedCategory);
+
   return (
     <div className="flex-1 space-y-4 p-4 md:p-8 pt-6">
       <PageHeader
-        title="All Settings"
+        title="Settings"
         description="Manage your organization's settings and preferences."
       />
       
@@ -174,28 +178,27 @@ export default function SettingsPage() {
             </div>
             <nav className="space-y-1">
                 {filteredConfig.map(category => (
-                     <a
+                     <button
                         key={category.id}
-                        href={`#${category.id}`}
-                        onClick={() => setActiveCategory(category.id)}
+                        onClick={() => setSelectedCategory(category.id)}
                         className={cn(
-                            'block rounded-md px-3 py-2 text-sm font-medium hover:bg-muted',
-                            activeCategory === category.id ? 'bg-muted' : 'bg-transparent'
+                            'w-full text-left block rounded-md px-3 py-2 text-sm font-medium hover:bg-muted',
+                            selectedCategory === category.id ? 'bg-muted' : 'bg-transparent'
                         )}
                         >
                         {category.category}
-                    </a>
+                    </button>
                 ))}
             </nav>
         </div>
         
         {/* Right Content */}
-        <div className="md:col-span-3 space-y-8">
-            {filteredConfig.map(category => (
-                <div id={category.id} key={category.id} className="scroll-mt-20">
-                    <h2 className="text-2xl font-bold font-headline mb-4">{category.category}</h2>
+        <div className="md:col-span-3">
+           {activeCategoryDetails && (
+                <div>
+                    <h2 className="text-2xl font-bold font-headline mb-4">{activeCategoryDetails.category}</h2>
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                        {category.items.map(item => (
+                        {activeCategoryDetails.items.map(item => (
                             <Link href={item.href} key={item.id} className="block">
                                 <Card className="hover:shadow-md transition-shadow h-full">
                                     <CardHeader>
@@ -206,7 +209,7 @@ export default function SettingsPage() {
                         ))}
                     </div>
                 </div>
-            ))}
+           )}
         </div>
       </div>
     </div>

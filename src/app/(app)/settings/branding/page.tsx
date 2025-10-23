@@ -68,6 +68,7 @@ export default function BrandingPage() {
       <PageHeader
         title="Branding"
         description="Customize the look and feel of your organization's presence."
+        showBackButton
       />
       
       <div className="space-y-6">

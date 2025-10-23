@@ -10,6 +10,7 @@ export default function RolesPage() {
       <PageHeader
         title="Roles"
         description="Manage user roles and permissions."
+        showBackButton
       />
       <RolesList />
     </div>

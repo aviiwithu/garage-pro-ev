@@ -15,4 +15,7 @@ export type Customer = {
   portalStatus: 'Enabled' | 'Disabled';
   remarks?: string;
   salutation?: string;
+  gstin?:string;
+  password?:string;
+  contactPersons?:string;
 };

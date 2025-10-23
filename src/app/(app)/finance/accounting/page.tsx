@@ -73,7 +73,7 @@ export default function AccountingPage() {
 
     const selectedComplaint = useMemo(() => {
         if (!selectedInvoice) return null;
-        return complaints.find(c => c.id === selectedInvoice.ticketId) || null;
+        return complaints.find(c => c.id === selectedInvoice.complaintId) || null;
     }, [selectedInvoice, complaints]);
 
     const handleDownload = (data: any[], filename: string) => {

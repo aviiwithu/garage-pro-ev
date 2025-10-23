@@ -22,12 +22,16 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Loader2 } from "lucide-react";
+import { Loader2, Check, ChevronsUpDown } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useState, useEffect } from "react";
 import { LocationPicker } from "./location-picker";
 import { PhoneInput } from "../ui/phone-input";
 import { useAuth } from '@/context/AuthProvider';
+import { Branch } from '@/lib/branch-data';
+import { Popover, PopoverContent, PopoverTrigger } from '../ui/popover';
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '../ui/command';
+import { cn } from '@/lib/utils';
 
 const formSchema = z.object({
   // Branch Info
@@ -46,7 +50,7 @@ const formSchema = z.object({
   phone: z
     .string()
     .regex(
-     /^[6-9]\d{9}$/,
+      /^[6-9]\d{9}$/,
       "A valid 10-digit Indian contact number is required."
     ),
   email: z.string().email("A valid email is required."),
@@ -73,12 +77,14 @@ const LOCAL_STORAGE_KEY = "complaintForm";
 export function ComplaintForm({ onSubmit }: ComplaintFormProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [attachments, setAttachments] = useState<FileList | null>(null);
-    const { user, role } = useAuth();
+  const { user, role } = useAuth();
+  const [branches, setBranches] = useState<Branch[]>([]);
+
 
   const form = useForm<ComplaintFormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      branch: "Main Branch",
+      branch: "",
       vehicleType: "4 Wheeler",
       vehicleModel: "",
       registrationNumber: "",
@@ -94,6 +100,18 @@ export function ComplaintForm({ onSubmit }: ComplaintFormProps) {
       incidentLocation: "",
     },
   });
+ useEffect(() => {
+    async function fetchBranches() {
+      try {
+        const response = await fetch('/api/branches');
+        const data = await response.json();
+        setBranches(data);
+      } catch (error) {
+        console.error("Failed to fetch branches:", error);
+      }
+    }
+    fetchBranches();
+  }, []);
 
   useEffect(() => {
     const savedData = localStorage.getItem(LOCAL_STORAGE_KEY);
@@ -110,13 +128,13 @@ export function ComplaintForm({ onSubmit }: ComplaintFormProps) {
     }
   }, [form]);
 
-    useEffect(() => {
+  useEffect(() => {
     if (user) {
-        form.setValue('customerName', user.name || '');
-        form.setValue('email', user.email || '');
-        if ('mobile' in user && user.mobile) {
-            form.setValue('phone', user.phone);
-        }
+      form.setValue('customerName', user.name || '');
+      form.setValue('email', user.email || '');
+      if ('mobile' in user && user.mobile) {
+        form.setValue('phone', user.phone);
+      }
     }
   }, [user, form]);
 
@@ -135,7 +153,7 @@ export function ComplaintForm({ onSubmit }: ComplaintFormProps) {
     setIsSubmitting(false);
   }
 
-    const showVehicleDropdown = role === 'customer' && user && 'vehicles' in user && Array.isArray(user.vehicles) && user.vehicles.length > 0;
+  const showVehicleDropdown = role === 'customer' && user && 'vehicles' in user && Array.isArray(user.vehicles) && user.vehicles.length > 0;
 
   console.log(form.getValues());
 
@@ -158,26 +176,53 @@ export function ComplaintForm({ onSubmit }: ComplaintFormProps) {
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Branch / Store Location</FormLabel>
-                  <Select
-                    onValueChange={field.onChange}
-                    defaultValue={field.value}
-                    value={field.value}
-                  >
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select branch" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      <SelectItem value="Main Branch">Main Branch</SelectItem>
-                      <SelectItem value="Downtown Service Center">
-                        Downtown Service Center
-                      </SelectItem>
-                      <SelectItem value="Westside Express">
-                        Westside Express
-                      </SelectItem>
-                    </SelectContent>
-                  </Select>
+                  <Popover >
+                    <PopoverTrigger asChild>
+                      <FormControl >
+                        <Button
+                          variant="outline"
+                          role="combobox"
+                          className={cn(
+                            "w-full justify-between",
+                            !field.value && "text-muted-foreground"
+                          )}
+                        >
+                          {field.value? branches?.find((branch) => branch.branchCode === field.value)?.name
+                            : "Select branch"}
+                          <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                        </Button>
+                      </FormControl>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-[--radix-popover-trigger-width] p-0">
+                      <Command>
+                        <CommandInput placeholder="Search branch..." />
+                        <CommandList>
+                          <CommandEmpty>No branch found.</CommandEmpty>
+                          <CommandGroup>
+                            {branches.map((branch) => (
+                              <CommandItem
+                                value={branch.branchCode}
+                                key={branch.branchCode}
+                                onSelect={() => {
+                                  form.setValue("branch", branch.branchCode)
+                                }}
+                              >
+                                <Check
+                                  className={cn(
+                                    "mr-2 h-4 w-4",
+                                    branch.branchCode === field.value
+                                      ? "opacity-100"
+                                      : "opacity-0"
+                                  )}
+                                />
+                                {branch.name} - {branch.location}
+                              </CommandItem>
+                            ))}
+                          </CommandGroup>
+                        </CommandList>
+                      </Command>
+                    </PopoverContent>
+                  </Popover>
                   <FormMessage />
                 </FormItem>
               )}
@@ -247,9 +292,9 @@ export function ComplaintForm({ onSubmit }: ComplaintFormProps) {
                     </Select>
                   ) : (
                   )} */}
-                    <FormControl>
-                        <Input placeholder="e.g., MH12AB1234" {...field} />
-                    </FormControl>
+                  <FormControl>
+                    <Input placeholder="e.g., MH12AB1234" {...field} />
+                  </FormControl>
                 </FormItem>
               )}
             />

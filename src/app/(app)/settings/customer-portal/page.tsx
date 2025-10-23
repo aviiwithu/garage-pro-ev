@@ -31,6 +31,7 @@ export default function CustomerPortalPage() {
       <PageHeader
         title="Customer Portal"
         description="Configure your customer portal settings and preferences."
+        showBackButton
       />
       
       <div className="space-y-6">

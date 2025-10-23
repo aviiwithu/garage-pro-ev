@@ -48,3 +48,5 @@ export async function analyzeData(
 ): Promise<DataAnalysisOutput> {
   return dataAnalysisFlow(input);
 }
+
+export { DataAnalysisOutput };

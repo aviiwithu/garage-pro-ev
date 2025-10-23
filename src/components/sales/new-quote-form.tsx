@@ -139,7 +139,7 @@ export function NewQuoteForm({ onSubmit }: NewQuoteFormProps) {
     const customer = customers.find(c => c.id === customerId);
     if (customer) {
         form.setValue('customerId', customerId);
-        form.setValue('customerName', customer.name);
+        form.setValue('customerName', customer?.name??'');
     }
   };
 

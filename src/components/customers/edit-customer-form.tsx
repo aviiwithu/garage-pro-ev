@@ -70,7 +70,8 @@ export function EditCustomerForm({ customer, onSuccess }: EditCustomerFormProps)
         portalStatus: portalStatus ? 'Enabled' : 'Disabled',
         remarks: remarks || '',
         salutation: salutation,
-        name: name
+        name: name,
+        companyName:companyName
       };
 
       // if (values.type === 'B2B') {
@@ -198,10 +199,7 @@ export function EditCustomerForm({ customer, onSuccess }: EditCustomerFormProps)
                 </FormItem>
               )}
             />
-            <FormItem>
-              <FormLabel>Customer Number</FormLabel>
-              <FormControl><Input disabled placeholder="Auto-generated" /></FormControl>
-            </FormItem>
+          
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
 

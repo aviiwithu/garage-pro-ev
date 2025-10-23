@@ -124,19 +124,19 @@ export default function DataInsightsPage() {
                         <div>
                             <h3 className="font-semibold text-lg flex items-center gap-2 mb-2"><TrendingUp /> Key Trends</h3>
                             <ul className="list-disc list-inside space-y-1 bg-secondary p-4 rounded-md">
-                                {result.keyTrends.map((trend, index) => <li key={index}>{trend}</li>)}
+                                {result.keyTrends.map((trend:string, index:number) => <li key={index}>{trend}</li>)}
                             </ul>
                         </div>
                          <div>
                             <h3 className="font-semibold text-lg flex items-center gap-2 mb-2"><AlertTriangle /> Anomalies & Outliers</h3>
                              <ul className="list-disc list-inside space-y-1 bg-secondary p-4 rounded-md">
-                                {result.anomalies.map((anomaly, index) => <li key={index}>{anomaly}</li>)}
+                                {result.anomalies.map((anomaly:string, index:number) => <li key={index}>{anomaly}</li>)}
                             </ul>
                         </div>
                          <div>
                             <h3 className="font-semibold text-lg flex items-center gap-2 mb-2"><Lightbulb /> Actionable Insights</h3>
                              <ul className="list-disc list-inside space-y-1 bg-secondary p-4 rounded-md">
-                                {result.actionableInsights.map((insight, index) => <li key={index}>{insight}</li>)}
+                                {result.actionableInsights.map((insight:string, index:number) => <li key={index}>{insight}</li>)}
                             </ul>
                         </div>
                     </CardContent>

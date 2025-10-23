@@ -16,6 +16,8 @@ export default function CustomerDashboardPage() {
     const { user, loading: authLoading } = useAuth();
     const { complaints, loading: complaintsLoading } = useComplaint();
     const { amcs, loading: amcsLoading } = useAmc();
+// +    const customerVehicles: string[] = user?.role === 'customer' ? (user as any).vehicles ?? [] : [];
+  const customerVehicles: string[] = user?.role === 'customer' ? (user as any).vehicles ?? [] : [];
 
     const loading = authLoading || complaintsLoading || amcsLoading;
 
@@ -50,9 +52,9 @@ export default function CustomerDashboardPage() {
                         <Car className="h-4 w-4 text-muted-foreground" />
                     </CardHeader>
                     <CardContent>
-                        <div className="text-2xl font-bold">{user?.vehicles?.length || 0}</div>
+                        <div className="text-2xl font-bold">{customerVehicles.length || 0}</div>
                         <p className="text-xs text-muted-foreground">
-                            {Array.isArray(user?.vehicles) ? user.vehicles.join(', ') : ''}
+                            {customerVehicles.join(', ') }
                         </p>
                     </CardContent>
                 </Card>

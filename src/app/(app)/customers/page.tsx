@@ -24,7 +24,6 @@ import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { batchImportData } from '@/app/actions/data-ingestion';
-import Script from 'next/script';
 
 function mapRowToDocument(row: Record<string, any>): Partial<Customer> {
     const normalizedRow: Record<string, any> = {};
@@ -84,7 +83,7 @@ export default function CustomersPage() {
     };
 
     const handleDownloadSample = () => {
-        const sampleData: Customer[] = [{
+        const sampleData: Omit<Customer, "id">[] = [{
             gstin: "29GGGGG1314B9Z2",
             type: "B2B",
             salutation: "Mr.",
@@ -98,9 +97,10 @@ export default function CustomersPage() {
             contactPersons: "Jane Doe",
             gstNumber: "29GGGGG1314B9Z2",
             pan: "ABCDE1234F",
-            vehicleNumbers: ["KA01AB1234", "KA01AB1235"],
+            vehicles: ["KA01AB1234", "KA01AB1235"],
             portalStatus: "Enabled",
             remarks: "Preferred customer",
+            role: 'customer'
         }];
 
         const csv = Papa.unparse(sampleData);

@@ -59,9 +59,7 @@ export function ComplaintsDataTable<TData, TValue>({
       sorting,
       columnFilters,
     },
-    meta: {
-        onRowClick,
-    }
+    meta: ({ onRowClick } as any)
   })
 
   return (

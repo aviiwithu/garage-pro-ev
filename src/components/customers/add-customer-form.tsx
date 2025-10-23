@@ -110,8 +110,12 @@ export function AddCustomerForm({ onSuccess }: AddCustomerFormProps) {
         portalStatus: portalStatus ? 'Enabled' : 'Disabled',
         remarks: remarks || '',
         salutation: salutation,
-        name: name
+        name: name,
+        companyName:companyName
       };
+
+      console.log(customerData);
+      
 
       // if (type === 'B2B') {
       //     customerData.companyName = companyName;

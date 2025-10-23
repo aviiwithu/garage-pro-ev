@@ -135,7 +135,7 @@ export function AdminDashboard() {
         }).reduce((sum, inv) => sum + inv.total, 0);
 
         const totalPaymentDays = paidInvoices.reduce((acc, inv) => {
-            const complaint = complaints.find(c => c.id === inv.ticketId);
+            const complaint = complaints.find(c => c.id === inv.complaintId);
             if (!complaint || !complaint.resolvedAt) return acc;
             const paymentDate = new Date(complaint.resolvedAt); // Assume payment date is resolution date
             const invoiceDate = new Date(inv.date);

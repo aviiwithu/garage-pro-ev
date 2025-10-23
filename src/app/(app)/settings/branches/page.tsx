@@ -4,7 +4,7 @@
 import { PageHeader } from '@/components/shared/page-header';
 import { Button } from '@/components/ui/button';
 import { PlusCircle, Loader2, MoreVertical } from 'lucide-react';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
   Dialog,
   DialogContent,
@@ -14,35 +14,85 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
-import { Badge } from '@/components/ui/badge';
 import { AddBranchForm } from '@/components/settings/add-branch-form';
-
-// Mock data for now, this would come from a context or API call
-const branches = [
-    { id: '1', name: 'Main Branch', location: 'Downtown, Mechville', manager: 'John Doe', contact: '555-1234', status: 'Active' },
-    { id: '2', name: 'Westside Express', location: 'West Suburbs, Mechville', manager: 'Jane Smith', contact: '555-5678', status: 'Active' },
-    { id: '3', name: 'Northpoint Service', location: 'North District, Mechville', manager: 'Jim Brown', contact: '555-9012', status: 'Inactive' },
-];
-
+import { Branch } from '@/lib/branch-data';
+import {
+  ColumnDef,
+  ColumnFiltersState,
+  SortingState,
+  flexRender,
+  getCoreRowModel,
+  getFilteredRowModel,
+  getPaginationRowModel,
+  getSortedRowModel,
+  useReactTable,
+} from "@tanstack/react-table"
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table"
+import { Input } from '@/components/ui/input';
+import { columns as branchColumns } from '@/components/settings/branches/columns';
 
 export default function BranchesPage() {
     const [dialogOpen, setDialogOpen] = useState(false);
-    const [loading, setLoading] = useState(false); // Placeholder for data loading
+    const [loading, setLoading] = useState(true);
+    const [branches, setBranches] = useState<Branch[]>([]);
+
+    const [sorting, setSorting] = useState<SortingState>([])
+    const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])
+
+    const fetchBranches = async () => {
+        setLoading(true);
+        try {
+            const response = await fetch('/api/branches');
+            if (!response.ok) {
+                throw new Error('Failed to fetch branches');
+            }
+            const data = await response.json();
+            setBranches(data);
+        } catch (error) {
+            console.error("Failed to fetch branch data:", error);
+        } finally {
+            setLoading(false);
+        }
+    };
+    
+    useEffect(() => {
+        fetchBranches();
+    }, []);
+
+    const table = useReactTable({
+        data: branches,
+        columns: branchColumns,
+        getCoreRowModel: getCoreRowModel(),
+        getPaginationRowModel: getPaginationRowModel(),
+        onSortingChange: setSorting,
+        getSortedRowModel: getSortedRowModel(),
+        onColumnFiltersChange: setColumnFilters,
+        getFilteredRowModel: getFilteredRowModel(),
+        state: {
+          sorting,
+          columnFilters,
+        },
+    });
 
     const handleFormSuccess = () => {
         setDialogOpen(false);
-        // Here you would typically refetch the branches list
+        // Refetch branches after adding a new one
+        fetchBranches();
     };
     
-    const getStatusVariant = (status: string) => status === 'Active' ? 'default' : 'secondary';
-
   return (
     <div className="flex-1 space-y-4 p-4 md:p-8 pt-6">
       <PageHeader
         title="Branch Management"
         description="Add, view, and manage all your organization's branches."
+        showBackButton
       >
         <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
             <DialogTrigger asChild>
@@ -67,6 +117,16 @@ export default function BranchesPage() {
       <Card>
         <CardHeader>
             <CardTitle>Branch List</CardTitle>
+            <div className="flex items-center py-4">
+                <Input
+                placeholder="Search by branch name..."
+                value={(table.getColumn("name")?.getFilterValue() as string) ?? ""}
+                onChange={(event) =>
+                    table.getColumn("name")?.setFilterValue(event.target.value)
+                }
+                className="max-w-sm"
+                />
+            </div>
         </CardHeader>
         <CardContent>
             {loading ? (
@@ -74,43 +134,69 @@ export default function BranchesPage() {
                     <Loader2 className="h-8 w-8 animate-spin" />
                 </div>
             ) : (
-                <Table>
-                    <TableHeader>
-                        <TableRow>
-                            <TableHead>Branch Name</TableHead>
-                            <TableHead>Location</TableHead>
-                            <TableHead>Branch Manager</TableHead>
-                            <TableHead>Contact</TableHead>
-                            <TableHead>Status</TableHead>
-                            <TableHead className="text-right">Actions</TableHead>
-                        </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                        {branches.map((branch) => (
-                            <TableRow key={branch.id}>
-                                <TableCell className="font-medium">{branch.name}</TableCell>
-                                <TableCell>{branch.location}</TableCell>
-                                <TableCell>{branch.manager}</TableCell>
-                                <TableCell>{branch.contact}</TableCell>
-                                <TableCell>
-                                    <Badge variant={getStatusVariant(branch.status)}>{branch.status}</Badge>
-                                </TableCell>
-                                <TableCell className="text-right">
-                                    <DropdownMenu>
-                                        <DropdownMenuTrigger asChild>
-                                            <Button variant="ghost" size="icon"><MoreVertical /></Button>
-                                        </DropdownMenuTrigger>
-                                        <DropdownMenuContent>
-                                            <DropdownMenuItem>Edit</DropdownMenuItem>
-                                            <DropdownMenuItem>Deactivate</DropdownMenuItem>
-                                        </DropdownMenuContent>
-                                    </DropdownMenu>
-                                </TableCell>
+                <div className="rounded-md border">
+                    <Table>
+                        <TableHeader>
+                        {table.getHeaderGroups().map((headerGroup) => (
+                            <TableRow key={headerGroup.id}>
+                            {headerGroup.headers.map((header) => {
+                                return (
+                                <TableHead key={header.id}>
+                                    {header.isPlaceholder
+                                    ? null
+                                    : flexRender(
+                                        header.column.columnDef.header,
+                                        header.getContext()
+                                        )}
+                                </TableHead>
+                                )
+                            })}
                             </TableRow>
                         ))}
-                    </TableBody>
-                </Table>
+                        </TableHeader>
+                        <TableBody>
+                        {table.getRowModel().rows?.length ? (
+                            table.getRowModel().rows.map((row) => (
+                            <TableRow
+                                key={row.id}
+                                data-state={row.getIsSelected() && "selected"}
+                            >
+                                {row.getVisibleCells().map((cell) => (
+                                <TableCell key={cell.id}>
+                                    {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                                </TableCell>
+                                ))}
+                            </TableRow>
+                            ))
+                        ) : (
+                            <TableRow>
+                            <TableCell colSpan={branchColumns.length} className="h-24 text-center">
+                                No results.
+                            </TableCell>
+                            </TableRow>
+                        )}
+                        </TableBody>
+                    </Table>
+                </div>
             )}
+             <div className="flex items-center justify-end space-x-2 py-4">
+                <Button
+                variant="outline"
+                size="sm"
+                onClick={() => table.previousPage()}
+                disabled={!table.getCanPreviousPage()}
+                >
+                Previous
+                </Button>
+                <Button
+                variant="outline"
+                size="sm"
+                onClick={() => table.nextPage()}
+                disabled={!table.getCanNextPage()}
+                >
+                Next
+                </Button>
+            </div>
         </CardContent>
       </Card>
     </div>

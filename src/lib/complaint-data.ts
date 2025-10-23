@@ -29,4 +29,15 @@ export type Complaint = {
   actualItems: JobItems;
   attachmentUrls?: string[];
   customerId:string;
+  detailedIssue?:string;
+  branch:string;
+  vehicleType:string;
+  customerType:string;
+  phone:string;
+  email:string;
+  issueType:string;
+  resolutionType:string;
+  priority:string;
+  incidentLocation?:string;
+
 };

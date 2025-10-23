@@ -11,6 +11,7 @@ export default function RoleDetailsPage({ params }: { params: { roleId: string }
       <PageHeader
         title="Role Details"
         description="Edit role details and manage assigned users."
+        showBackButton
       />
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div>

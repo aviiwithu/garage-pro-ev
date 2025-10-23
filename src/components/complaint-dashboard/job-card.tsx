@@ -147,7 +147,8 @@ export function JobCard({ complaint: initialComplaint }: JobCardProps) {
                 }
             }
 
-            var rzp1 = new window.Razorpay(checkoutOptions);
+            var rzp1 = new (window as any).Razorpay(checkoutOptions);
+             
 
             rzp1.on('payment.failed', function (response: any) {
                 console.log("payment.failed", response);

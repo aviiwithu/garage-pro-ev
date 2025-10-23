@@ -53,7 +53,7 @@ import { Logo } from '@/components/shared/logo';
 import { useSidebar } from '@/components/ui/sidebar';
 import Script from 'next/script';
 
-export const adminNavItems = [
+const adminNavItems = [
   {
     group: 'General',
     items: [
@@ -183,13 +183,13 @@ function AppLayoutContent({ children }: { children: React.ReactNode }) {
 
   return (
     <>
-      {
-        effectiveRole === "customer" &&
+      {/* {
+        effectiveRole === "customer" && */}
         <Script
           id="razorpay-checkout-js"
           src="https://checkout.razorpay.com/v1/checkout.js"
         />
-      }
+      {/* } */}
         <Sidebar>
           <SidebarHeader>
             <div className="flex items-center gap-2">

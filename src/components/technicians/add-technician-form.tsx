@@ -182,7 +182,7 @@ export function AddTechnicianForm({
         dateOfJoining: technician.dateOfJoining,
         dateOfLeaving: technician.dateOfLeaving
           ? technician.dateOfLeaving
-          : undefined,
+          : null,
         specialization: technician.specialization || "General",
         salaryStructure: {
         ...technician.salaryStructure,
