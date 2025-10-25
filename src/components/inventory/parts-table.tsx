@@ -29,12 +29,14 @@ interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[]
   data: TData[]
   onEdit: (part: InventoryPart) => void;
+  onAdjustStock: (part: InventoryPart) => void;
 }
 
 export function PartsTable<TData, TValue>({
   columns,
   data,
   onEdit,
+  onAdjustStock
 }: DataTableProps<TData, TValue>) {
   const [sorting, setSorting] = React.useState<SortingState>([])
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([])
@@ -59,6 +61,7 @@ export function PartsTable<TData, TValue>({
     },
     meta: {
         editPart: onEdit,
+        adjustStock: onAdjustStock,
     }
   })
 

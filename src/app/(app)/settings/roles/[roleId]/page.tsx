@@ -5,7 +5,7 @@ import { PageHeader } from '@/components/shared/page-header';
 import { RoleDetails } from '@/components/settings/roles/role-details';
 import { AssignedUsersList } from '@/components/settings/roles/assigned-users-list';
 
-export default function RoleDetailsPage({ params }: { params: { roleId: string } }) {
+export default function RoleDetailsPage({ params }: { params: any }) {
   return (
     <div className="flex-1 space-y-4 p-4 md:p-8 pt-6">
       <PageHeader

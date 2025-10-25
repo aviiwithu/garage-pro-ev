@@ -29,6 +29,8 @@ import { Separator } from "../ui/separator";
 import { Switch } from "../ui/switch";
 import { DatePicker } from "../ui/date-picker"; // Reusable DatePicker
 import { PhoneInput } from "../ui/phone-input";
+import { Branch } from "@/lib/branch-data";
+import { MultiSelectCombobox } from "../ui/multi-select-combobox";
 
 // Constants for select options
 const GENDER_OPTIONS = ["Male", "Female", "Other"] as const;
@@ -62,7 +64,8 @@ const formSchema = z.object({
 
   designation: z.string().min(2, { message: "Title/Designation is required." }),
   specialization: z.enum(SPECIALIZATION_OPTIONS),
-  location: z.string().min(2, { message: "Location is required." }),
+  location: z.array(z.string()).min(1, { message: "At least one branch is required." }),
+
 
   panNumber: z.string().length(10, { message: "PAN must be 10 characters." }),
   aadhaarNumber: z
@@ -83,7 +86,7 @@ const formSchema = z.object({
   pfStatus: z.enum(STATUS_OPTIONS),
   uan: z.string().optional(),
   esicStatus: z.enum(STATUS_OPTIONS),
-  esicIpNumber: z.string().optional(),
+  esicIpNumber: z.string().optional().nullable(),
 
   salaryStructure: z.object({
     basic: z.coerce
@@ -130,7 +133,7 @@ const defaultFormValues = {
   dateOfJoining: new Date().toISOString(),
   designation: "",
   specialization: "General" as const,
-  location: "Main Branch",
+  location: [],
   panNumber: "",
   aadhaarNumber: "",
   residentOfIndia: true,
@@ -165,6 +168,26 @@ export function AddTechnicianForm({
   const { toast } = useToast();
   const { addTechnician, updateTechnician } = useEmployee();
   const [loading, setLoading] = useState(false);
+  const [branches, setBranches] = useState<Branch[]>([]);
+
+  useEffect(() => {
+    async function fetchBranches() {
+      try {
+        const response = await fetch('/api/branches');
+        const data = await response.json();
+        setBranches(data);
+      } catch (error) {
+        console.error("Failed to fetch branches:", error);
+      }
+    }
+    fetchBranches();
+  }, []);
+
+  const branchOptions = useMemo(() =>
+    branches.map(branch => ({
+      value: branch.branchCode,
+      label: branch.name,
+    })), [branches]);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(technician ? formSchema : formSchemaWithPassword),
@@ -172,7 +195,7 @@ export function AddTechnicianForm({
   });
 
   useEffect(() => {
-    let timeoutRef:NodeJS.Timeout;
+    let timeoutRef: NodeJS.Timeout;
     if (technician) {
       const formData = {
         ...technician,
@@ -184,24 +207,24 @@ export function AddTechnicianForm({
           ? technician.dateOfLeaving
           : null,
         specialization: technician.specialization || "General",
+        location: Array.isArray(technician.location) ? technician.location : (technician.location ? [technician.location] : []),
+
         salaryStructure: {
-        ...technician.salaryStructure,
-        allowances: technician.salaryStructure?.allowances || [],
-        deductions: technician.salaryStructure?.deductions || [],
-      },
+          ...technician.salaryStructure,
+          allowances: technician.salaryStructure?.allowances || [],
+          deductions: technician.salaryStructure?.deductions || [],
+        },
       };
       timeoutRef = setTimeout(() => {
-      form.reset(formData);
-      clearTimeout(timeoutRef)
-    }, 0);
+        form.reset(formData);
+        clearTimeout(timeoutRef)
+      }, 0);
       // form.reset(formData);
     } else {
       form.reset(defaultFormValues);
     }
   }, [technician]);
 
-  console.log(technician);
-  
 
   const {
     fields: allowanceFields,
@@ -247,9 +270,8 @@ export function AddTechnicianForm({
 
       toast({
         title: `Employee ${technician ? "Updated" : "Added"}`,
-        description: `${values.name} has been successfully ${
-          technician ? "updated" : "added"
-        }.`,
+        description: `${values.name} has been successfully ${technician ? "updated" : "added"
+          }.`,
       });
       onSuccess();
     } catch (error: any) {
@@ -449,9 +471,9 @@ export function AddTechnicianForm({
                     <FormLabel>Specialization</FormLabel>
                     <FormControl>
                       <Select {...field}
-                       onValueChange={(val) => {
-                      if (val) field.onChange(val);
-                    }}
+                        onValueChange={(val) => {
+                          if (val) field.onChange(val);
+                        }}
                       >
                         <FormControl>
                           <SelectTrigger>
@@ -477,13 +499,13 @@ export function AddTechnicianForm({
               control={form.control}
               name="location"
               render={({ field }) => (
-                <FormItem className="lg:col-span-2">
-                  <FormLabel>Work Location / Branch</FormLabel>
-                  <FormControl>
-                    <Input placeholder="e.g., Main Branch" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
+                <MultiSelectCombobox
+                  options={branchOptions}
+                  selected={field.value}
+                  onChange={field.onChange}
+                  placeholder="Select branches..."
+                  className="w-full"
+                />
               )}
             />
           </div>

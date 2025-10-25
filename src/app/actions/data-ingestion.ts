@@ -1,4 +1,4 @@
-'use server';
+
 
 import { db } from '@/lib/firebase';
 import { collection, writeBatch, doc } from 'firebase/firestore';
@@ -12,7 +12,8 @@ import { collection, writeBatch, doc } from 'firebase/firestore';
  */
 export async function batchImportData(
   collectionName: string,
-  data: Record<string, any>[]
+  data: Record<string, any>[],
+  duplicate?: "overwrite" | "skip"
 ): Promise<void> {
   if (data.length === 0) {
     return;
@@ -29,10 +30,22 @@ export async function batchImportData(
     const collectionRef = collection(db, collectionName);
 
     chunk.forEach((item) => {
-      // Prioritize a specific ID field if it exists, otherwise Firestore generates one.
-      const id = item.employeeId || item.partNumber || item.id || doc(collectionRef).id;
-      const docRef = doc(collectionRef, id);
-      batch.set(docRef, { ...item, id }); // Ensure the ID is part of the document data
+      const id = item.id || item.employeeId || item.partNumber;
+      let docRef = doc(collectionRef);
+      const updateOrCreateData: any = { ...item };
+      if (id) {
+        docRef = doc(collectionRef, id);
+        updateOrCreateData.id = id;
+      }
+
+
+      Object.keys(updateOrCreateData).forEach(key => {
+        if (updateOrCreateData[key] === undefined) {
+          updateOrCreateData[key] = null;
+        }
+      });
+
+      batch.set(docRef, updateOrCreateData);
     });
 
     await batch.commit();

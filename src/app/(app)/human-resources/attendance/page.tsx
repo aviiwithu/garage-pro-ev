@@ -163,7 +163,7 @@ export default function AttendancePage() {
     };
     
     const handleClockIn = () => {
-        if (user) {
+        if (user && user.name) {
             clockIn(user.id, user.name);
         }
     }

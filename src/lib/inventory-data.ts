@@ -20,17 +20,33 @@ export type InventoryPart = {
   inventoryAccountCode?: string;
   itemType?: 'Goods'; // Product Type
   usageUnit?: string;
-  taxable?: boolean;
+  taxable?: boolean | "yes" | "no";
 };
 
 export type ServiceItem = {
-    id?: string;
-    name: string;
-    description?: string;
-    category: 'Routine' | 'Bodywork' | 'Diagnostics' | 'AC Repair' | 'Other';
-    price: number; // Base Price (pre-tax)
-    gstRate: number; // e.g., 5, 12, 18, 28
-    hsnSacCode: string; // SAC for services
-    duration?: string; // e.g. "45 minutes"
-    itemType?: 'Service';
+  id?: string;
+  name: string;
+  description?: string;
+  category: 'Routine' | 'Bodywork' | 'Diagnostics' | 'AC Repair' | 'Other';
+  price: number; // Base Price (pre-tax)
+  gstRate: number; // e.g., 5, 12, 18, 28
+  hsnSacCode: string; // SAC for services
+  duration?: string; // e.g. "45 minutes"
+  itemType?: 'Service';
+};
+
+export type StockAdjustment = {
+  id: string;
+  partId: string;
+  partName: string;
+  partNumber: string;
+  adjustedBy: string; // User's name or ID
+  adjustedByUserId:string;
+  adjustmentMode: 'set' | 'add' | 'remove';
+  adjustmentType: 'IN' | 'OUT';
+  quantityChange: number;
+  oldQuantity: number;
+  newQuantity: number;
+  reason: string;
+  timestamp: string; // ISO String
 };

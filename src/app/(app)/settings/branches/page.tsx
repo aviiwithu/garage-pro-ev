@@ -94,7 +94,7 @@ export default function BranchesPage() {
         description="Add, view, and manage all your organization's branches."
         showBackButton
       >
-        <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+        {/* <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
             <DialogTrigger asChild>
                 <Button>
                     <PlusCircle className="mr-2" />
@@ -110,7 +110,7 @@ export default function BranchesPage() {
                 </DialogHeader>
                 <AddBranchForm onSuccess={handleFormSuccess} />
             </DialogContent>
-        </Dialog>
+        </Dialog> */}
 
       </PageHeader>
       

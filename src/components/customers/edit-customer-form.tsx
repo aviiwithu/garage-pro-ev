@@ -50,6 +50,8 @@ export function EditCustomerForm({ customer, onSuccess }: EditCustomerFormProps)
       companyName: customer.companyName || '',
       vehicleNumbers: customer.vehicles || [],
       portalStatus: customer.portalStatus === 'Enabled',
+      pan: customer.pan || '',
+      gstNumber: customer.gstNumber || '',
     },
   });
 

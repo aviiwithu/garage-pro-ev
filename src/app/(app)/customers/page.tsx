@@ -24,26 +24,30 @@ import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { batchImportData } from '@/app/actions/data-ingestion';
+import { collection, doc, writeBatch } from 'firebase/firestore';
+import { db } from '@/lib/firebase';
+import * as XLSX from 'xlsx';
 
 function mapRowToDocument(row: Record<string, any>): Partial<Customer> {
     const normalizedRow: Record<string, any> = {};
     for (const key in row) {
-        normalizedRow[key.trim().toLowerCase().replace(/[^a-z0-9]/gi, '')] = row[key];
+        normalizedRow[key.trim().replace(/[^a-z0-9.]/gi, '')] = row[key];
     }
 
     return {
-        name: normalizedRow.displayname || `${normalizedRow.firstname} ${normalizedRow.lastname}`,
-        displayName: normalizedRow.displayname,
-        email: normalizedRow.emailid,
-        mobile: normalizedRow.mobilephone,
-        workPhone: normalizedRow.phone,
-        type: (normalizedRow.gsttreatment === 'business_gst' || normalizedRow.companyname) ? 'B2B' : 'B2C',
-        companyName: normalizedRow.companyname,
-        address: `${normalizedRow.billingaddress || ''}, ${normalizedRow.billingcity || ''}, ${normalizedRow.billingstate || ''} - ${normalizedRow.billingcode || ''}`.replace(/^,|,$/g, '').trim(),
-        gstNumber: normalizedRow.gstidentificationnumbergstin,
+        name: normalizedRow.displayname || `${normalizedRow.name} `,
+        displayName: normalizedRow.displayName,
+        email: normalizedRow.email,
+        phone: normalizedRow.phone,
+        type: normalizedRow.type,
+        companyName: normalizedRow.companyName,
+        address: normalizedRow.address,
+        gstNumber: normalizedRow.gstNumber,
+        pan: normalizedRow.pan,
         role: 'customer',
         vehicles: [], // Vehicles are not in this sample CSV
         portalStatus: 'Enabled',
+        remarks: normalizedRow.remarks
     } as Partial<Customer>;
 }
 
@@ -84,7 +88,7 @@ export default function CustomersPage() {
 
     const handleDownloadSample = () => {
         const sampleData: Omit<Customer, "id">[] = [{
-            gstin: "29GGGGG1314B9Z2",
+            gstNumber: "29GGGGG1314B9Z2",
             type: "B2B",
             salutation: "Mr.",
             name: "John Doe",
@@ -95,7 +99,6 @@ export default function CustomersPage() {
             password: "password123",
             address: "123 Main St, Sample City",
             contactPersons: "Jane Doe",
-            gstNumber: "29GGGGG1314B9Z2",
             pan: "ABCDE1234F",
             vehicles: ["KA01AB1234", "KA01AB1235"],
             portalStatus: "Enabled",
@@ -126,21 +129,41 @@ export default function CustomersPage() {
     };
 
     const parseFile = (fileToParse: File) => {
-        Papa.parse(fileToParse, {
-            header: true,
-            skipEmptyLines: true,
-            transformHeader: (header) => header.trim(),
-            complete: (results) => {
-                if (results.errors.length > 0) {
-                    toast({ title: "Parsing Error", description: `Error: ${results.errors[0].message}`, variant: "destructive" });
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            try {
+                const data = e.target?.result;
+                const workbook = XLSX.read(data, { type: 'array' });
+                const sheetName = workbook.SheetNames[0];
+                const worksheet = workbook.Sheets[sheetName];
+                const json = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
+                
+                if (json.length === 0) {
+                    toast({ title: "Parsing Error", description: "The file is empty.", variant: "destructive" });
                     return;
                 }
-                const headers = results.meta.fields || [];
 
-                setParsedData(results.data as any[]);
+                const headers: string[] = json[0] as string[];
+                const rows: Record<string, any>[] = (json.slice(1) as any[][]).map(row => {
+                    const rowData: Record<string, any> = {};
+                    headers.forEach((header, index) => {
+                        rowData[header] = row[index];
+                    });
+                    return rowData;
+                });
+                
                 setUploadHeaders(headers);
+                setParsedData(rows);
+
+            } catch (error) {
+                 toast({ title: "Parsing Error", description: "Failed to parse the file.", variant: "destructive" });
+                 console.error(error);
             }
-        });
+        };
+        reader.onerror = (error) => {
+             toast({ title: "File Read Error", description: "Failed to read the file.", variant: "destructive" });
+        }
+        reader.readAsArrayBuffer(fileToParse);
     };
 
     const handleDiscardImport = () => {
@@ -158,6 +181,7 @@ export default function CustomersPage() {
             const dataToImport = parsedData.map(mapRowToDocument).filter(d => d.name && d.email);
             if (dataToImport.length > 0) {
                 await batchImportData('users', dataToImport);
+                // await batchImport(dataToImport)
             }
 
             toast({

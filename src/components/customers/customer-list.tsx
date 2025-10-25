@@ -5,39 +5,71 @@ import { useState } from 'react';
 import { Customer } from '@/lib/customer-data';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { MoreVertical } from 'lucide-react';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 import {
     Dialog,
     DialogContent,
     DialogHeader,
     DialogTitle,
+    DialogDescription,
 } from '@/components/ui/dialog';
 import { EditCustomerForm } from './edit-customer-form';
 import { DeleteCustomerDialog } from './delete-customer-dialog';
+import { CustomerDetails } from './customer-details';
+import {
+  ColumnDef,
+  ColumnFiltersState,
+  SortingState,
+  flexRender,
+  getCoreRowModel,
+  getFilteredRowModel,
+  getPaginationRowModel,
+  getSortedRowModel,
+  useReactTable,
+} from "@tanstack/react-table"
+import { Input } from '@/components/ui/input';
+import { columns } from './columns';
+
 
 export function CustomerList({ customers }: { customers: Customer[] }) {
   const [editingCustomer, setEditingCustomer] = useState<Customer | null>(null);
   const [deletingCustomer, setDeletingCustomer] = useState<Customer | null>(null);
+  const [viewingCustomer, setViewingCustomer] = useState<Customer | null>(null);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [isViewDialogOpen, setIsViewDialogOpen] = useState(false);
 
-  const handleEditClick = (customer: Customer) => {
-    setEditingCustomer(customer);
-    setIsEditDialogOpen(true);
-  };
+  const [sorting, setSorting] = useState<SortingState>([])
+  const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])
 
-  const handleDeleteClick = (customer: Customer) => {
-    setDeletingCustomer(customer);
-    setIsDeleteDialogOpen(true);
-  };
+  const table = useReactTable({
+    data: customers,
+    columns,
+    getCoreRowModel: getCoreRowModel(),
+    getPaginationRowModel: getPaginationRowModel(),
+    onSortingChange: setSorting,
+    getSortedRowModel: getSortedRowModel(),
+    onColumnFiltersChange: setColumnFilters,
+    getFilteredRowModel: getFilteredRowModel(),
+    state: {
+      sorting,
+      columnFilters,
+    },
+    meta: {
+      viewCustomer: (customer: Customer) => {
+        setViewingCustomer(customer);
+        setIsViewDialogOpen(true);
+      },
+      editCustomer: (customer: Customer) => {
+        setEditingCustomer(customer);
+        setIsEditDialogOpen(true);
+      },
+      deleteCustomer: (customer: Customer) => {
+        setDeletingCustomer(customer);
+        setIsDeleteDialogOpen(true);
+      },
+    },
+  });
 
   const handleSuccess = () => {
     setIsEditDialogOpen(false);
@@ -46,70 +78,105 @@ export function CustomerList({ customers }: { customers: Customer[] }) {
     setDeletingCustomer(null);
   };
 
-  const getCustomerName = (customer: Customer) => {
-    if (customer.type === 'B2B') {
-      return customer.companyName;
-    } else {
-      return `${customer.name}`;
-    }
-  };
-
   return (
     <>
         <Card>
         <CardHeader>
             <CardTitle>Customer Directory</CardTitle>
             <CardDescription>A list of all customers in your system.</CardDescription>
+            <div className="flex items-center py-4">
+                <Input
+                    placeholder="Search by name..."
+                    value={(table.getColumn("name")?.getFilterValue() as string) ?? ""}
+                    onChange={(event) =>
+                        table.getColumn("name")?.setFilterValue(event.target.value)
+                    }
+                    className="max-w-sm"
+                />
+            </div>
         </CardHeader>
         <CardContent>
-            <Table>
-            <TableHeader>
-                <TableRow>
-                <TableHead>Name</TableHead>
-                <TableHead>Type</TableHead>
-                <TableHead>Email</TableHead>
-                <TableHead>Phone</TableHead>
-                <TableHead>Vehicles</TableHead>
-                <TableHead>Actions</TableHead>
-                </TableRow>
-            </TableHeader>
-            <TableBody>
-                {customers.map((customer) => (
-                <TableRow key={customer.id}>
-                    <TableCell className="font-medium">{getCustomerName(customer)}</TableCell>
-                    <TableCell>
-                    <Badge variant={customer.type === 'B2B' ? 'secondary' : 'default'}>{customer.type}</Badge>
-                    </TableCell>
-                    <TableCell>{customer.email}</TableCell>
-                    <TableCell>{customer.phone}</TableCell>
-                    <TableCell>{customer.vehicles.join(', ')}</TableCell>
-                    <TableCell>
-                        <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                                <Button variant="ghost" size="icon">
-                                    <MoreVertical />
-                                </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent>
-                                <DropdownMenuItem>View Details</DropdownMenuItem>
-                                <DropdownMenuItem onClick={() => handleEditClick(customer)}>Edit Customer</DropdownMenuItem>
-                                <DropdownMenuItem onClick={() => handleDeleteClick(customer)} className="text-destructive">Delete</DropdownMenuItem>
-                            </DropdownMenuContent>
-                        </DropdownMenu>
-                    </TableCell>
-                </TableRow>
+            <div className="rounded-md border">
+                <Table>
+                <TableHeader>
+                {table.getHeaderGroups().map((headerGroup) => (
+                    <TableRow key={headerGroup.id}>
+                    {headerGroup.headers.map((header) => {
+                        return (
+                        <TableHead key={header.id}>
+                            {header.isPlaceholder
+                            ? null
+                            : flexRender(
+                                header.column.columnDef.header,
+                                header.getContext()
+                                )}
+                        </TableHead>
+                        )
+                    })}
+                    </TableRow>
                 ))}
-            </TableBody>
+                </TableHeader>
+                <TableBody>
+                {table.getRowModel().rows?.length ? (
+                    table.getRowModel().rows.map((row) => (
+                    <TableRow
+                        key={row.id}
+                        data-state={row.getIsSelected() && "selected"}
+                    >
+                        {row.getVisibleCells().map((cell) => (
+                        <TableCell key={cell.id}>
+                            {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                        </TableCell>
+                        ))}
+                    </TableRow>
+                    ))
+                ) : (
+                    <TableRow>
+                    <TableCell colSpan={columns.length} className="h-24 text-center">
+                        No results.
+                    </TableCell>
+                    </TableRow>
+                )}
+                </TableBody>
             </Table>
+            </div>
+             <div className="flex items-center justify-end space-x-2 py-4">
+                <Button
+                variant="outline"
+                size="sm"
+                onClick={() => table.previousPage()}
+                disabled={!table.getCanPreviousPage()}
+                >
+                Previous
+                </Button>
+                <Button
+                variant="outline"
+                size="sm"
+                onClick={() => table.nextPage()}
+                disabled={!table.getCanNextPage()}
+                >
+                Next
+                </Button>
+            </div>
         </CardContent>
         </Card>
 
         <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-            <DialogContent>
+            <DialogContent className="sm:max-w-3xl">
             <DialogHeader>
                 <DialogTitle>Edit Customer</DialogTitle>
+                <DialogDescription>Update the details for {editingCustomer?.displayName}.</DialogDescription>
             </DialogHeader>
             {editingCustomer && <EditCustomerForm customer={editingCustomer} onSuccess={handleSuccess} />}
+            </DialogContent>
+        </Dialog>
+        
+        <Dialog open={isViewDialogOpen} onOpenChange={setIsViewDialogOpen}>
+            <DialogContent className="sm:max-w-2xl">
+            <DialogHeader>
+                <DialogTitle>Customer Details</DialogTitle>
+            </DialogHeader>
+            {viewingCustomer && <CustomerDetails customer={viewingCustomer} />}
             </DialogContent>
         </Dialog>
 

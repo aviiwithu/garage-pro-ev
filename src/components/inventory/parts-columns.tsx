@@ -17,11 +17,20 @@ import { Badge } from "../ui/badge"
 declare module '@tanstack/react-table' {
   interface TableMeta<TData> {
     editPart: (part: InventoryPart) => void
+    adjustStock?: (part: InventoryPart) => void;
   }
 
 }
 
 export const partsColumns: ColumnDef<InventoryPart>[] = [
+   {
+    accessorKey: "id",
+    header: ({ column }) => (
+      <Button variant="ghost" onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}>
+        Id <ArrowUpDown className="ml-2 h-4 w-4" />
+      </Button>
+    ),
+  },
   {
     accessorKey: "name",
     header: ({ column }) => (
@@ -50,14 +59,14 @@ export const partsColumns: ColumnDef<InventoryPart>[] = [
   {
     accessorKey: "itemType",
     header: "Item Type",
-    cell: ({ row }) => <Badge variant="outline">{row.original.itemType || 'Goods'}</Badge>
+    cell: ({ row }) => <Badge variant="outline">{row.original.category || 'NA'}</Badge>
   },
   {
     id: "actions",
     cell: ({ row, table }) => {
       const part = row.original;
       return (
-        <DropdownMenu>
+        <DropdownMenu modal={false} >
           <DropdownMenuTrigger asChild>
             <Button variant="ghost" size="icon"><MoreVertical /></Button>
           </DropdownMenuTrigger>
@@ -65,7 +74,9 @@ export const partsColumns: ColumnDef<InventoryPart>[] = [
             <DropdownMenuItem onClick={() => table.options.meta?.editPart(part)}>
               Edit
             </DropdownMenuItem>
-            <DropdownMenuItem>Adjust Stock</DropdownMenuItem>
+           <DropdownMenuItem onClick={() => table.options.meta?.adjustStock?.(part)}>
+              Adjust Stock
+            </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
       );

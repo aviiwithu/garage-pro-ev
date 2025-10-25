@@ -10,8 +10,7 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
 import { InventoryPart, ServiceItem } from '@/lib/inventory-data';
-import { useEffect, useState } from 'react';
-import { Checkbox } from '../ui/checkbox';
+import { useEffect } from 'react';
 import { Textarea } from '../ui/textarea';
 import { useInventory } from '@/context/InventoryContext';
 import { Separator } from '../ui/separator';
@@ -22,6 +21,7 @@ const formSchema = z.object({
   itemType: z.enum(['Goods', 'Service']).default('Goods'),
   description: z.string().optional(),
   price: z.coerce.number().min(0, "Price can't be negative."),
+  purchasePrice: z.coerce.number().optional(),
   gstRate: z.coerce.number().min(0, "GST Rate is required."),
   hsnSacCode: z.string().min(3, "Code is required."),
   
@@ -64,6 +64,7 @@ const defaultFormValues = {
   itemType: 'Goods' as const,
   description: '',
   price: 0,
+  purchasePrice: 0,
   gstRate: 18,
   hsnSacCode: '',
   partNumber: '',
@@ -85,7 +86,7 @@ interface AddInventoryItemFormProps {
 
 export function AddInventoryItemForm({ onSuccess, item }: AddInventoryItemFormProps) {
   const { toast } = useToast();
-  const { addService, batchAddOrUpdateParts } = useInventory();
+  const { addService, batchAddOrUpdateParts, batchAddOrUpdateServices } = useInventory();
   
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -111,7 +112,11 @@ export function AddInventoryItemForm({ onSuccess, item }: AddInventoryItemFormPr
                 hsnSacCode: values.hsnSacCode,
                 duration: values.duration,
             };
-            await addService(serviceData);
+            if (item?.id) {
+                await batchAddOrUpdateServices([], [{...serviceData, id: item.id}]);
+            } else {
+                await addService(serviceData);
+            }
         } else { // Goods
             const partData: Omit<InventoryPart, 'id'> = {
                 name: values.name,
@@ -123,6 +128,7 @@ export function AddInventoryItemForm({ onSuccess, item }: AddInventoryItemFormPr
                 stock: values.stock!,
                 minStockLevel: values.minStockLevel || 0,
                 price: values.price,
+                purchasePrice: values.purchasePrice || 0,
                 gstRate: values.gstRate,
                 hsnSacCode: values.hsnSacCode,
                 supplier: values.supplier || 'N/A',
@@ -251,6 +257,9 @@ export function AddInventoryItemForm({ onSuccess, item }: AddInventoryItemFormPr
                 <FormField control={form.control} name="price" render={({ field }) => (
                     <FormItem><FormLabel>{itemType === 'Goods' ? 'Selling Price' : 'Base Price'} (Pre-Tax)</FormLabel><FormControl><Input type="number" step="0.01" {...field} /></FormControl><FormMessage /></FormItem>
                 )} />
+                 {itemType === 'Goods' && <FormField control={form.control} name="purchasePrice" render={({ field }) => (
+                    <FormItem><FormLabel>Purchase Price (Pre-Tax)</FormLabel><FormControl><Input type="number" step="0.01" {...field} value={field.value || 0} /></FormControl><FormMessage /></FormItem>
+                )} />}
                 <FormField control={form.control} name="hsnSacCode" render={({ field }) => (
                     <FormItem><FormLabel>HSN / SAC Code</FormLabel><FormControl><Input placeholder="e.g., 8708 or 9987" {...field} /></FormControl><FormMessage /></FormItem>
                 )} />

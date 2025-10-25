@@ -29,11 +29,6 @@ export const servicesColumns: ColumnDef<ServiceItem>[] = [
     ),
   },
   {
-      accessorKey: "partNumber",
-      header: "SKU",
-      cell: () => 'N/A'
-  },
-  {
     accessorKey: "hsnSacCode",
     header: "HSN/SAC",
   },
@@ -46,26 +41,20 @@ export const servicesColumns: ColumnDef<ServiceItem>[] = [
     ),
     cell: ({ row }) => (
       <div>
-        <span className="font-code">INR </span>
-        <span className="font-code">₹</span><span className="font-code">{row.original.price.toFixed(2)}</span>
+        <span className="font-code">₹ </span><span className="font-code">{row.original.price.toFixed(2)}</span>
       </div>
     ),
   },
-   {
-      accessorKey: "stock",
-      header: "Stock on Hand",
-      cell: () => 'N/A'
-  },
   {
-      accessorKey: "itemType",
-      header: "Item Type",
-      cell: () => <Badge variant="secondary">Service</Badge>
+      accessorKey: "category",
+      header: "Category",
+      cell: ({ row }) => <Badge variant="secondary">{row.original.category||"NA"}</Badge>
   },
   {
     id: "actions",
     cell: ({ row, table }) => {
       return (
-        <DropdownMenu>
+        <DropdownMenu modal={false} >
             <DropdownMenuTrigger asChild>
                 <Button variant="ghost" size="icon"><MoreVertical /></Button>
             </DropdownMenuTrigger>
