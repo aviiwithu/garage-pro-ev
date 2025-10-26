@@ -1,6 +1,6 @@
 'use server';
 
-import { initializeApp, getApps,getApp, cert, App} from 'firebase-admin/app';
+import { initializeApp, getApps,getApp, cert, App, ServiceAccount} from 'firebase-admin/app';
 import { getAuth } from "firebase-admin/auth";
 
 
@@ -24,12 +24,11 @@ import serviceAccountKey from '@/firebase-adminsdk.json';
 
 // console.log(serviceAccountKey);
 let adminApp: App;
-
 if (!getApps().length) {
     try {
       adminApp =  initializeApp({
             // credential: admin.credential.cert(serviceAccountKey),
-            credential: cert(serviceAccountKey),
+            credential: cert(serviceAccountKey as ServiceAccount),
             // databaseURL: "https://garage-pro-ev-default-rtdb.firebaseio.com"
         });
     } catch (error: any) {
@@ -40,6 +39,7 @@ if (!getApps().length) {
 }else{
     adminApp = getApp();
 }
+
 
 
 export const createUserWithEmailAndPasswordByAdmin = async ({ email, password, displayName }: { email: string, password: string, displayName: string }) => {

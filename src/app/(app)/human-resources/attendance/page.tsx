@@ -265,20 +265,20 @@ export default function AttendancePage() {
                             className="rounded-md border"
                             modifiers={calendarModifiers}
                             modifiersStyles={calendarModifierStyles}
-                            components={{
-                                DayContent: ({ date }) => {
-                                    const dayData = monthlyData.find(d => isSameDay(d.date, date));
-                                    let dotColor = '';
-                                    if (dayData?.status === 'Present') dotColor = 'text-green-500';
+                            // components={{
+                            //     DayContent: ({ date }) => {
+                            //         const dayData = monthlyData.find(d => isSameDay(d.date, date));
+                            //         let dotColor = '';
+                            //         if (dayData?.status === 'Present') dotColor = 'text-green-500';
                                     
-                                    return (
-                                        <div className="relative">
-                                            {format(date, 'd')}
-                                            {dotColor && <Circle className={`h-2 w-2 absolute -bottom-2 left-1/2 -translate-x-1/2 fill-current ${dotColor}`} />}
-                                        </div>
-                                    );
-                                }
-                            }}
+                            //         return (
+                            //             <div className="relative">
+                            //                 {format(date, 'd')}
+                            //                 {dotColor && <Circle className={`h-2 w-2 absolute -bottom-2 left-1/2 -translate-x-1/2 fill-current ${dotColor}`} />}
+                            //             </div>
+                            //         );
+                            //     }
+                            // }}
                         />
                         <div className="flex justify-around text-xs text-muted-foreground pt-2">
                             <div className="flex items-center gap-2"><Circle className="h-2 w-2 text-green-500 fill-current"/> Present</div>

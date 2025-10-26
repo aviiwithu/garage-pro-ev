@@ -49,7 +49,6 @@ export function EmployeeTable({ employees }: { employees: Employee[] }) {
                             <TableCell className="font-medium">{employee.name}</TableCell>
                             <TableCell>{employee.email}</TableCell>
                             <TableCell>{isTechnician && (employee as Technician).phone ? (employee as Technician).phone : 'N/A'}</TableCell>
-                            <TableCell>{isTechnician && (employee as Technician).department ? (employee as Technician).department : 'N/A'}</TableCell>
                             <TableCell>{isTechnician && (employee as Technician).manager ? (employee as Technician).manager : 'N/A'}</TableCell>
                             <TableCell>{isTechnician && (employee as Technician).gender ? (employee as Technician).gender : 'N/A'}</TableCell>
                             <TableCell>

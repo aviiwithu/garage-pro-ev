@@ -96,7 +96,7 @@ export function AddAmcForm({ onSuccess }: AddAmcFormProps) {
 
     const newAmc = {
         customerId: selectedCustomer.id,
-        customerName: selectedCustomer.name,
+        customerName: selectedCustomer.name ?? '',
         vehicleNumber: values.vehicleNumber,
         vehicleCategory: values.vehicleCategory,
         planName: selectedPlan.name,

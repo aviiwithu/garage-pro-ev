@@ -85,7 +85,6 @@ export function TechnicianDetails({ technician }: TechnicianDetailsProps) {
                                 <div className="grid grid-cols-2 md:grid-cols-3 gap-x-4 gap-y-4 text-sm">
                                     <DetailItem label="Date of Joining" value={format(new Date(technician.dateOfJoining), 'PPP')} />
                                     {technician.dateOfLeaving && <DetailItem label="Date of Leaving" value={format(new Date(technician.dateOfLeaving), 'PPP')} />}
-                                    <DetailItem label="Department" value={technician.department} />
                                     <DetailItem label="Manager" value={technician.manager} />
                                     <DetailItem label="Location(s)" value={Array.isArray(technician.location) ? technician.location.join(', ') : technician.location} />
                                 </div>

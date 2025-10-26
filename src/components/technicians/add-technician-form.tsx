@@ -254,7 +254,14 @@ export function AddTechnicianForm({
         designation: designation,
         dateOfBirth: values.dateOfBirth,
         dateOfJoining: values.dateOfJoining,
-        dateOfLeaving: values.dateOfLeaving || null,
+        dateOfLeaving: values.dateOfLeaving ?? '',
+        esicIpNumber: values.esicIpNumber ?? '',
+        salaryStructure: {
+          basic: values.salaryStructure.basic,
+          hra: values.salaryStructure.hra,
+          allowances: values.salaryStructure.allowances??[],
+          deductions: values.salaryStructure.deductions??[],
+        },
       };
 
       if (technician) {

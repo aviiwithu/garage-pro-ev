@@ -145,7 +145,7 @@ export default function EmployeesPage() {
     const handleImport = async () => {
         setIsImporting(true);
         try {
-            const dataToImport = parsedData.map(mapRowToDocument).filter(d => d.employeeId && d.name && d.email);
+            const dataToImport = parsedData.map(mapRowToDocument).filter(d => d.id && d.name && d.email);
             if(dataToImport.length > 0) {
                 await batchImportData('users', dataToImport);
             }

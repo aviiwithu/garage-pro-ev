@@ -34,6 +34,7 @@ import {
 } from "@tanstack/react-table";
 import { columns } from '@/components/technicians/columns';
 import { TechnicianDetails } from '@/components/technicians/technician-details';
+import { InventoryPart, ServiceItem } from '@/lib/inventory-data';
 
 
 
@@ -118,7 +119,7 @@ export default function TechniciansPage() {
             columnFilters,
         },
         meta: {
-             viewTechnician: (technician: Technician) => {
+            viewTechnician: (technician: Technician) => {
                 setViewingTechnician(technician);
                 setViewDialogOpen(true);
             },
@@ -129,6 +130,12 @@ export default function TechniciansPage() {
             removeTechnician: (technician: Technician) => {
                 // Implement remove logic here
                 console.log('Removing:', technician.name);
+            },
+            editPart: function (part: InventoryPart): void {
+                // throw new Error('Function not implemented.');
+            },
+            editService: function (service: ServiceItem): void {
+                // throw new Error('Function not implemented.');
             }
         }
     });

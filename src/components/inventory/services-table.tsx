@@ -34,6 +34,10 @@ interface DataTableProps {
 
 interface ServiceTableMeta {
   editService: (service: ServiceItem) => void;
+  viewTechnician: (...args: any[]) => void;
+  editTechnician: (...args: any[]) => void;
+  removeTechnician: (...args: any[]) => void;
+  editPart: (...args: any[]) => void;
 }
 
 export function ServicesTable({

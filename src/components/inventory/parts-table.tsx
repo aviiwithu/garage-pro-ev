@@ -23,7 +23,8 @@ import {
 } from "@/components/ui/table"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { InventoryPart } from "@/lib/inventory-data"
+import { InventoryPart, ServiceItem } from "@/lib/inventory-data"
+import { Technician } from "@/lib/technician-data"
 
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[]
@@ -60,8 +61,20 @@ export function PartsTable<TData, TValue>({
         },
     },
     meta: {
-        editPart: onEdit,
-        adjustStock: onAdjustStock,
+      editPart: onEdit,
+      adjustStock: onAdjustStock,
+      viewTechnician: function (technician: Technician): void {
+        // throw new Error("Function not implemented.")
+      },
+      editTechnician: function (technician: Technician): void {
+        // throw new Error("Function not implemented.")
+      },
+      removeTechnician: function (technician: Technician): void {
+        // throw new Error("Function not implemented.")
+      },
+      editService: function (service: ServiceItem): void {
+        // throw new Error("Function not implemented.")
+      }
     }
   })
 

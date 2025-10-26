@@ -29,6 +29,8 @@ import {
 } from "@tanstack/react-table"
 import { Input } from '@/components/ui/input';
 import { columns } from './columns';
+import { InventoryPart, ServiceItem } from '@/lib/inventory-data';
+import { Technician } from '@/lib/technician-data';
 
 
 export function CustomerList({ customers }: { customers: Customer[] }) {
@@ -56,18 +58,33 @@ export function CustomerList({ customers }: { customers: Customer[] }) {
       columnFilters,
     },
     meta: {
-      viewCustomer: (customer: Customer) => {
-        setViewingCustomer(customer);
-        setIsViewDialogOpen(true);
-      },
-      editCustomer: (customer: Customer) => {
-        setEditingCustomer(customer);
-        setIsEditDialogOpen(true);
-      },
-      deleteCustomer: (customer: Customer) => {
-        setDeletingCustomer(customer);
-        setIsDeleteDialogOpen(true);
-      },
+        viewCustomer: (customer: Customer) => {
+            setViewingCustomer(customer);
+            setIsViewDialogOpen(true);
+        },
+        editCustomer: (customer: Customer) => {
+            setEditingCustomer(customer);
+            setIsEditDialogOpen(true);
+        },
+        deleteCustomer: (customer: Customer) => {
+            setDeletingCustomer(customer);
+            setIsDeleteDialogOpen(true);
+        },
+        viewTechnician: function (technician: Technician): void {
+            // throw new Error('Function not implemented.');
+        },
+        editTechnician: function (technician: Technician): void {
+            // throw new Error('Function not implemented.');
+        },
+        removeTechnician: function (technician: Technician): void {
+            // throw new Error('Function not implemented.');
+        },
+        editPart: function (part: InventoryPart): void {
+            // throw new Error('Function not implemented.');
+        },
+        editService: function (service: ServiceItem): void {
+            // throw new Error('Function not implemented.');
+        }
     },
   });
 

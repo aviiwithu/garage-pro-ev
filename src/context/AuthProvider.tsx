@@ -68,7 +68,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   
           if (userDoc.exists()) {
             const userData = userDoc.data() as User;
-            if (role !== "admin" && userData?.portalStatus && userData?.portalStatus === "Disabled") {
+            if (role !== "admin" && 'portalStatus' in userData && userData.portalStatus === "Disabled") {
               toast({
                 title: 'Login Failed',
                 description: "Your portal access has been disabled. Please contact support.",

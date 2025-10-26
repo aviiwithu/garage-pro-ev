@@ -71,8 +71,8 @@ export const EmployeeProvider = ({ children }: { children: ReactNode }) => {
 
     try {
       const { data: user, message } = await createUserWithEmailAndPasswordByAdmin({ email: technicianData.email, password, displayName: technicianData.name ?? technicianData.displayName ?? '' })
-      if (!user) {
-        throw new Error(message)
+      if (!user || typeof (user as any).uid !== 'string') {
+        throw new Error(message || 'User creation failed: Invalid response format')
       }
       // 2. Prepare the data for Firestore, adding the 'technician' role
       const dataToSave: Omit<Technician, 'id'> = {
@@ -82,7 +82,8 @@ export const EmployeeProvider = ({ children }: { children: ReactNode }) => {
 
       // 3. Save the technician data to the 'users' collection in Firestore
       //    using the generated auth user's UID as the document ID.
-      await setDoc(doc(db, 'users', user.uid), dataToSave);
+      const uid = (user as any).uid as string;
+      await setDoc(doc(db, 'users', uid), dataToSave);
 
     } catch (error: any) {
       if (error.code === 'auth/email-already-in-use') {

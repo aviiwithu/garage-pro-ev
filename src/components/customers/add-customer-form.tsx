@@ -129,7 +129,7 @@ export function AddCustomerForm({ onSuccess }: AddCustomerFormProps) {
       //     customerData.name = name;
       // }
 
-      await setDoc(doc(db, 'users', user.uid), customerData);
+      await setDoc(doc(db, 'users', createdUser.uid), customerData);
 
       toast({
         title: "Customer Created",

@@ -19,8 +19,6 @@ export type Technician = {
   dateOfJoining: string; // ISO String
   dateOfLeaving?: string; // ISO String
   role: 'technician';
-  title: string; // Replaces designation
-  department: 'RSA' | 'COCO' | 'Management' | 'HR' | 'Finance';
   manager?: string; // Replaces reportingManager
   location: string[];
   panNumber: string;
