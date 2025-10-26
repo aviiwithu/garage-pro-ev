@@ -9,7 +9,7 @@ import { getAuth } from "firebase-admin/auth";
 
 const serviceAccountKey = {
     type:process.env.FIREBASE_SERVICE_ACCOUNT_type??'',
-    project_id:process.env.FIREBASE_SERVICE_ACCOUNT_project_id??'',
+    project_id:process.env.FIREBASE_SERVICE_ACCOUNT_projectId??'',
     private_key_id:process.env.FIREBASE_SERVICE_ACCOUNT_private_key_id??'',
     private_key:process.env.FIREBASE_SERVICE_ACCOUNT_private_key,
     client_email:process.env.FIREBASE_SERVICE_ACCOUNT_client_email??'',
