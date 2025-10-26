@@ -12,6 +12,7 @@ import { AttendanceProvider } from './AttendanceContext';
 import { SalesProvider } from './SalesContext';
 import { VendorProvider } from './VendorContext';
 import { Loader2 } from 'lucide-react';
+import { PaymentProvider } from './PaymentContext';
 
 export function DataProvider({ children }: { children: ReactNode }) {
     const { loading: authLoading } = useAuth();
@@ -33,7 +34,9 @@ export function DataProvider({ children }: { children: ReactNode }) {
                             <AttendanceProvider>
                                 <SalesProvider>
                                     <VendorProvider>
-                                        {children}
+                                       <PaymentProvider>
+                                            {children}
+                                        </PaymentProvider>
                                     </VendorProvider>
                                 </SalesProvider>
                             </AttendanceProvider>

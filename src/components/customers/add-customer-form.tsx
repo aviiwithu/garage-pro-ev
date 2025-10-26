@@ -15,8 +15,8 @@ import { Switch } from '../ui/switch';
 import { Separator } from '../ui/separator';
 import { auth, db } from '@/lib/firebase';
 import { useEffect } from 'react';
-import { createUserWithEmailAndPassword } from 'firebase/auth';
 import { ChipInput } from '../ui/chip-input';
+import { createUserWithEmailAndPasswordByAdmin } from '@/lib/firebase-admin';
 
 const formSchema = z.object({
   gstin: z.string().optional(),
@@ -94,10 +94,16 @@ export function AddCustomerForm({ onSuccess }: AddCustomerFormProps) {
     try {
       const { email, password, type, companyName, name, displayName, phone, address, gstNumber, pan, portalStatus, remarks, salutation, vehicleNumbers } = values;
 
-      const { user } = await createUserWithEmailAndPassword(auth, email, password);
+      const {success,data:user,message} = await createUserWithEmailAndPasswordByAdmin({email,displayName:name||displayName,password});
+      if(!user){
+        throw new Error(message);
+      }
+      
+      // The admin API returns a user object; assert the shape so TypeScript knows it has a uid.
+      const createdUser = user as { uid: string };
 
       const customerData: any = {
-        id: user.uid,
+        id: createdUser.uid,
         displayName: displayName,
         type: type,
         email: email,
@@ -114,7 +120,7 @@ export function AddCustomerForm({ onSuccess }: AddCustomerFormProps) {
         companyName:companyName
       };
 
-      console.log(customerData);
+      // console.log(customerData);
       
 
       // if (type === 'B2B') {

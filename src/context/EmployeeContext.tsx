@@ -7,7 +7,7 @@ import { Customer } from '@/lib/customer-data';
 import { collection, onSnapshot, query, where, getDocs, doc, setDoc, updateDoc, writeBatch } from 'firebase/firestore';
 import { useAuth } from './AuthProvider';
 import { db, auth } from '@/lib/firebase';
-import { createUserWithEmailAndPassword } from 'firebase/auth';
+import { createUserWithEmailAndPasswordByAdmin } from '@/lib/firebase-admin';
 
 // An Employee can be a Technician or a User with the 'admin' or 'customer' role.
 export type Employee = Technician | (Customer & { role: 'admin' | 'customer' });
@@ -46,18 +46,18 @@ export const EmployeeProvider = ({ children }: { children: ReactNode }) => {
     const usersQuery = query(collection(db, 'users'));
 
     const unsubscribe = onSnapshot(usersQuery, (snapshot) => {
-        const userList = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Employee));
-        
-        const employeeList = userList.filter(u => u.role === 'admin' || u.role === 'technician');
-        const technicianList = userList.filter(u => u.role === 'technician') as Technician[];
+      const userList = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Employee));
 
-        setEmployees(userList);
-        setTechnicians(technicianList);
-        
-        setLoading(false);
+      const employeeList = userList.filter(u => u.role === 'admin' || u.role === 'technician');
+      const technicianList = userList.filter(u => u.role === 'technician') as Technician[];
+
+      setEmployees(userList);
+      setTechnicians(technicianList);
+
+      setLoading(false);
     }, (error) => {
-        console.error("EmployeeContext: Error fetching users:", error);
-        setLoading(false);
+      console.error("EmployeeContext: Error fetching users:", error);
+      setLoading(false);
     });
 
     return () => unsubscribe();
@@ -66,68 +66,68 @@ export const EmployeeProvider = ({ children }: { children: ReactNode }) => {
 
   const addTechnician = async (technicianData: Omit<Technician, 'id' | 'role'>, password: string) => {
     if (!technicianData.email || !password) {
-        throw new Error("Email and password are required to create a new technician.");
+      throw new Error("Email and password are required to create a new technician.");
     }
 
     try {
-        // 1. Create the user in Firebase Authentication
-        const userCredential = await createUserWithEmailAndPassword(auth, technicianData.email, password);
-        const user = userCredential.user;
+      const { data: user, message } = await createUserWithEmailAndPasswordByAdmin({ email: technicianData.email, password, displayName: technicianData.name ?? technicianData.displayName ?? '' })
+      if (!user) {
+        throw new Error(message)
+      }
+      // 2. Prepare the data for Firestore, adding the 'technician' role
+      const dataToSave: Omit<Technician, 'id'> = {
+        ...technicianData,
+        role: 'technician',
+      };
 
-        // 2. Prepare the data for Firestore, adding the 'technician' role
-        const dataToSave: Omit<Technician, 'id'> = {
-            ...technicianData,
-            role: 'technician',
-        };
-
-        // 3. Save the technician data to the 'users' collection in Firestore
-        //    using the generated auth user's UID as the document ID.
-        await setDoc(doc(db, 'users', user.uid), dataToSave);
+      // 3. Save the technician data to the 'users' collection in Firestore
+      //    using the generated auth user's UID as the document ID.
+      await setDoc(doc(db, 'users', user.uid), dataToSave);
 
     } catch (error: any) {
-        if (error.code === 'auth/email-already-in-use') {
-            console.error("EmployeeContext: Error adding technician: Email already in use.");
-            throw new Error("This email is already registered.");
-        }
-        console.error("EmployeeContext: Error adding technician:", error);
-        throw error; // Re-throw for the form to handle
+      if (error.code === 'auth/email-already-in-use') {
+        console.error("EmployeeContext: Error adding technician: Email already in use.");
+        throw new Error("This email is already registered.");
+      }
+      console.error("EmployeeContext: Error adding technician:", error);
+      throw error; // Re-throw for the form to handle
     }
   };
 
 
   const updateTechnician = async (id: string, technicianData: Partial<Technician>) => {
     try {
-        const techDocRef = doc(db, 'users', id);
-        await updateDoc(techDocRef, technicianData);
-    } catch(error) {
-        console.error("EmployeeContext: Error updating technician:", error);
-        throw error;
+      const techDocRef = doc(db, 'users', id);
+      await updateDoc(techDocRef, technicianData);
+    } catch (error) {
+      console.error("EmployeeContext: Error updating technician:", error);
+      throw error;
     }
   };
-  
-  const batchAddEmployees = async (employeesToAdd: (Omit<Employee, 'id'>)[]) => {
-      try {
-        const batch = writeBatch(db);
-        const usersRef = collection(db, 'users');
-        
-        for (const emp of employeesToAdd) {
-            // Safety Check: Prevent creating auth-required users without an auth record.
-            if (emp.role === 'admin' || emp.role === 'technician') {
-                throw new Error(`Batch adding is not supported for roles that require authentication. Offending email: ${emp.email}`);
-            }
 
-            const newDocRef = doc(usersRef);
-            const newEmployeeData = {
-                ...emp,
-            };
-            batch.set(newDocRef, newEmployeeData);
+  const batchAddEmployees = async (employeesToAdd: (Omit<Employee, 'id'>)[]) => {
+    try {
+      const batch = writeBatch(db);
+      const usersRef = collection(db, 'users');
+
+      for (const emp of employeesToAdd) {
+        // Safety Check: Prevent creating auth-required users without an auth record.
+        if (emp.role === 'admin' || emp.role === 'technician') {
+          throw new Error(`Batch adding is not supported for roles that require authentication. Offending email: ${emp.email}`);
         }
-        
-        await batch.commit();
-      } catch(error) {
-        console.error("EmployeeContext: Error batch adding employees:", error);
-        throw error;
+
+        const newDocRef = doc(usersRef);
+        const newEmployeeData = {
+          ...emp,
+        };
+        batch.set(newDocRef, newEmployeeData);
       }
+
+      await batch.commit();
+    } catch (error) {
+      console.error("EmployeeContext: Error batch adding employees:", error);
+      throw error;
+    }
   };
 
 

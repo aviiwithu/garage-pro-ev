@@ -92,7 +92,7 @@ export const AccountingProvider = ({ children }: { children: ReactNode }) => {
         const invoiceRef = doc(db, 'invoices', invoice.id);
         batch.update(invoiceRef, { status: 'Paid' });
         
-        const complaintRef = doc(db, 'complaints', invoice.ticketId);
+        const complaintRef = doc(db, 'complaints', invoice.complaintId);
         batch.update(complaintRef, { status: 'Closed' });
 
 
@@ -108,17 +108,17 @@ export const AccountingProvider = ({ children }: { children: ReactNode }) => {
             batch.update(transactionDoc.ref, { 
                 type: 'Revenue',
                 date: new Date().toISOString(),
-                description: `Payment for Invoice #${invoice.id.substring(0, 6)}`
+                description: `Payment for Invoice #${invoice.id}`
             });
         } else {
             const transactionRef = doc(collection(db, 'transactions'));
             const newTransaction: Omit<Transaction, 'id'> = {
                 date: new Date().toISOString(),
                 type: 'Revenue',
-                description: `Payment for Invoice #${invoice.id.substring(0, 6)} - ${invoice.vehicleNumber}`,
+                description: `Payment for Invoice #${invoice.id} - ${invoice.vehicleNumber}`,
                 amount: invoice.total,
                 relatedInvoiceId: invoice.id,
-                relatedTicketId: invoice.ticketId,
+                relatedTicketId: invoice.complaintId,
             };
             batch.set(transactionRef, newTransaction);
         }

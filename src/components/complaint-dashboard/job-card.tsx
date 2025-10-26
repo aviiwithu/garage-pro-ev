@@ -6,10 +6,10 @@ import { InventoryPart, ServiceItem } from '@/lib/inventory-data';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Printer, CheckCircle, PlusCircle, Trash2, Send, Check, Play, Flag, FileText, UserCog, Paperclip } from 'lucide-react';
+import { Printer, CheckCircle, PlusCircle, Trash2, Send, Check, Play, Flag, FileText, UserCog, Paperclip, ChevronsUpDown, Command } from 'lucide-react';
 import { format } from 'date-fns';
 import { useComplaint } from '@/context/ComplaintContext';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { useInventory } from '@/context/InventoryContext';
@@ -23,23 +23,27 @@ import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
 import { createOrder, verifySignature } from '@/services/payment-gateway';
 import { useToast } from '@/hooks/use-toast';
+import { Invoice } from '@/lib/invoice-data';
+import { usePayment } from '@/context/PaymentContext';
 
 interface JobCardProps {
     complaint: Complaint;
 }
 
 export function JobCard({ complaint: initialComplaint }: JobCardProps) {
-    const { complaints, addEstimatedItem, addActualItem, approveEstimate, removeEstimatedItem, removeActualItem, updateComplaintStatus, closeAndInvoiceComplaint } = useComplaint();
+    const { complaints, addEstimatedItem, addActualItem, getComplaintInvoice, approveEstimate, removeEstimatedItem, removeActualItem, updateComplaintStatus, closeAndInvoiceComplaint, invoices } = useComplaint();
     const { parts: inventoryParts, services: serviceItems } = useInventory();
     const { role, user } = useAuth();
     const { toast } = useToast();
-
+    const { processPayment } = usePayment();
+    
+    
     const complaint = complaints.find(c => c.id === initialComplaint.id) || initialComplaint;
+    const relatedInvoice = invoices.find(inv => inv.complaintId === complaint.id);
 
     const [itemToAdd, setItemToAdd] = useState('');
     const [itemType, setItemType] = useState<'part' | 'service'>('part');
     const [assignDialogOpen, setAssignDialogOpen] = useState(false);
-
 
     const handleAddItem = () => {
         if (!itemToAdd) return;
@@ -111,59 +115,65 @@ export function JobCard({ complaint: initialComplaint }: JobCardProps) {
     const grandTotal = subtotal + totalTax;
 
     const handlePayment = async () => {
-        try {
-            const order = await createOrder(grandTotal, "invoice123");
-            const checkoutOptions = {
-                key: process.env.NEXT_PUBLIC_RZP_KEY,
-                amount: order.amount,
-                currency: order.currency,
-                name: "GaragePRO",
-                description: "Invoice for Ticket #" + complaint.id,
-                order_id: order.id,
-                handler: async function (response: any) {
-                    const razorpay_order_id = response.razorpay_order_id;
-                    const razorpay_payment_id = response.razorpay_payment_id;
-                    const razorpay_signature = response.razorpay_signature;
-                    const isSignatureValid = await verifySignature(razorpay_order_id, razorpay_payment_id, razorpay_signature);
-                    if (isSignatureValid) {
-                        toast({
-                            title: 'Payment successful',
-                            description: `Payment completed for the amount INR ${grandTotal}`,
-                            variant: 'default',
-                        });
+        // try {
+        //     const order = await createOrder(grandTotal, "invoice123");
+        //     const checkoutOptions = {
+        //         key: process.env.NEXT_PUBLIC_RZP_KEY,
+        //         amount: order.amount,
+        //         currency: order.currency,
+        //         name: "GaragePRO",
+        //         description: "Invoice for Ticket #" + complaint.id,
+        //         order_id: order.id,
+        //         handler: async function (response: any) {
+        //             const razorpay_order_id = response.razorpay_order_id;
+        //             const razorpay_payment_id = response.razorpay_payment_id;
+        //             const razorpay_signature = response.razorpay_signature;
+        //             const isSignatureValid = await verifySignature(razorpay_order_id, razorpay_payment_id, razorpay_signature);
+        //             if (isSignatureValid) {
+        //                 toast({
+        //                     title: 'Payment successful',
+        //                     description: `Payment completed for the amount INR ${grandTotal}`,
+        //                     variant: 'default',
+        //                 });
 
-                    }
-                },
-                prefill: {
-                    name: user?.name,
-                    email: user?.email,
-                    contact: user?.phone
-                },
-                notes: {
-                    address: "Razorpay Corporate Office"
-                },
-                theme: {
-                    color: "#3399cc"
-                }
-            }
+        //             }
+        //         },
+        //         prefill: {
+        //             name: user?.name,
+        //             email: user?.email,
+        //             contact: user?.phone
+        //         },
+        //         notes: {
+        //             address: "Razorpay Corporate Office"
+        //         },
+        //         theme: {
+        //             color: "#3399cc"
+        //         }
+        //     }
 
-            var rzp1 = new (window as any).Razorpay(checkoutOptions);
-             
+        //     var rzp1 = new (window as any).Razorpay(checkoutOptions);
 
-            rzp1.on('payment.failed', function (response: any) {
-                console.log("payment.failed", response);
-                // toast({
-                //         title: 'Payment failed',
-                //         description: "Payment not completed for the flow",
-                //         variant: 'destructive',
-                //     });
 
-            });
-            rzp1.open();
+        //     rzp1.on('payment.failed', function (response: any) {
+        //         console.log("payment.failed", response);
+        //         // toast({
+        //         //         title: 'Payment failed',
+        //         //         description: "Payment not completed for the flow",
+        //         //         variant: 'destructive',
+        //         //     });
 
-        } catch (error) {
-            console.log(error)
+        //     });
+        //     rzp1.open();
+
+        // } catch (error) {
+        //     console.log(error)
+        // }
+
+        if (!relatedInvoice) {
+            toast({ title: 'Payment Error', description: 'Invoice not yet generated for this service.', variant: 'destructive' });
+            return;
         }
+        await processPayment(grandTotal, complaint.id, relatedInvoice.id);
     }
 
     return (
@@ -397,17 +407,19 @@ export function JobCard({ complaint: initialComplaint }: JobCardProps) {
                         Mark as Resolved
                     </Button>
                 )}
-                {complaint.status === 'Resolved' && (
+                {complaint.status === 'Resolved' && role !== "customer" && (
                     <Button onClick={handleCloseAndInvoice}>
                         <FileText className="mr-2 h-4 w-4" />
                         Generate Invoice &amp; Close
                     </Button>
                 )}
-
-                <Button onClick={handlePayment}>
-                    <Printer className="mr-2 h-4 w-4" />
-                    Pay Now
-                </Button>
+                {
+                    role == "customer" && relatedInvoice && relatedInvoice.status !== "Paid" &&
+                    <Button onClick={handlePayment}>
+                        <Printer className="mr-2 h-4 w-4" />
+                        Pay Now
+                    </Button>
+                }
                 <Button onClick={handlePrint}>
                     <Printer className="mr-2 h-4 w-4" />
                     Print / Save as PDF

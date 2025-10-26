@@ -44,7 +44,8 @@ export function DatePicker({ value, onChange, placeholder = "Pick a date", fromY
           {value ? format(value, "PPP") : <span>{placeholder}</span>}
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-auto p-0">
+      <PopoverContent className="w-auto p-0"
+      >
         <Calendar
           mode="single"
           selected={value?new Date(value):undefined}

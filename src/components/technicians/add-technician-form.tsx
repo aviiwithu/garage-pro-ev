@@ -609,7 +609,7 @@ export function AddTechnicianForm({
                 <FormItem>
                   <FormLabel>UAN</FormLabel>
                   <FormControl>
-                    <Input {...field} />
+                    <Input {...field} value={field.value || ''} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -650,7 +650,7 @@ export function AddTechnicianForm({
                 <FormItem className="lg:col-span-2">
                   <FormLabel>ESIC IP Number</FormLabel>
                   <FormControl>
-                    <Input {...field} />
+                    <Input {...field} value={field.value ?? ""} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>

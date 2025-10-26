@@ -10,6 +10,7 @@ export type Technician = {
   id: string;
   employeeId: string;
   name: string;
+  address?:string;
   email: string;
   phone: string;
   displayName?: string;

@@ -201,7 +201,7 @@ export function ComplaintForm({ onSubmit }: ComplaintFormProps) {
                           <CommandGroup>
                             {branches.map((branch) => (
                               <CommandItem
-                                value={branch.branchCode}
+                                value={`${branch.branchCode} ${branch.name} ${branch.location}`}
                                 key={branch.branchCode}
                                 onSelect={() => {
                                   form.setValue("branch", branch.branchCode)

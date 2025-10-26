@@ -5,7 +5,7 @@ import React, { createContext, useContext, useState, ReactNode, useEffect } from
 import { Complaint, ComplaintStatus, StatusHistory } from '@/lib/complaint-data';
 import { InventoryPart, ServiceItem } from '@/lib/inventory-data';
 import { Invoice } from '@/lib/invoice-data';
-import { collection, onSnapshot, query, orderBy, where, doc, updateDoc, addDoc, arrayUnion, or, arrayRemove, writeBatch, FieldValue } from 'firebase/firestore';
+import { collection, onSnapshot, query, orderBy, where, doc, updateDoc, addDoc, arrayUnion, or, arrayRemove, writeBatch, FieldValue, getDocs } from 'firebase/firestore';
 import { useAuth } from './AuthProvider';
 import { db, storage } from '@/lib/firebase';
 import { uploadBytes, ref, getDownloadURL } from 'firebase/storage';
@@ -23,6 +23,7 @@ interface ComplaintContextType {
   removeActualItem: (complaintId: string, item: InventoryPart | ServiceItem, type: 'part' | 'service') => Promise<void>;
   approveEstimate: (complaintId: string) => Promise<void>;
   closeAndInvoiceComplaint: (complaintId: string) => Promise<void>;
+  getComplaintInvoice: (complaintId:string)=> Promise<Partial<Invoice>>;
   loading: boolean;
 }
 
@@ -114,7 +115,7 @@ export const ComplaintProvider = ({ children }: { children: ReactNode }) => {
         createdBy: user?.id,
         creatorRole: user?.role,
         assignedTechnicianId: null,
-        customerId:user?.role==="customer"?user?.id??null:complaintData?.customerId?? null
+        customerId: user?.role === "customer" ? user?.id ?? null : complaintData?.customerId ?? null
       };
 
       const docRef = await addDoc(collection(db, 'complaints'), newComplaintData);
@@ -273,7 +274,7 @@ export const ComplaintProvider = ({ children }: { children: ReactNode }) => {
       const newTransaction = {
         date: new Date().toISOString(),
         type: 'Invoice Created',
-        description: `Invoice for Ticket #${complaint.id.substring(0, 6)} - ${complaint.vehicleNumber}`,
+        description: `Invoice for Ticket #${complaint.id} - ${complaint.vehicleNumber}`,
         amount: grandTotal,
         relatedInvoiceId: invoiceRef.id,
         relatedTicketId: complaint.id,
@@ -298,6 +299,20 @@ export const ComplaintProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
+  const getComplaintInvoice = async (complaintId: string) => {
+    try {
+      const complaintRef = doc(db, 'complaints', complaintId);
+      const complaint = complaints.find(c => c.id === complaintId);
+      const invoiceRef = collection(db, "invoices");
+      const q = query(invoiceRef, where("complaintId", "==", complaintId));
+      const querySnapshot = await getDocs(q);
+      return querySnapshot.docs[0];
+
+    } catch (error) {
+      return {}
+    }
+  }
+
 
   return (
     <ComplaintContext.Provider value={{
@@ -312,6 +327,7 @@ export const ComplaintProvider = ({ children }: { children: ReactNode }) => {
       removeActualItem,
       approveEstimate,
       closeAndInvoiceComplaint,
+      getComplaintInvoice,
       loading
     }}>
       {children}

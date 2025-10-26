@@ -328,7 +328,7 @@ export default function TechniciansPage() {
                     <Download className="mr-2" />
                     Download CSV
                 </Button>
-                <Dialog open={dialogOpen} onOpenChange={(isOpen) => {
+                <Dialog modal={false} open={dialogOpen} onOpenChange={(isOpen) => {
                     setDialogOpen(isOpen);
                     if (!isOpen) setSelectedTechnician(undefined);
                 }}>
